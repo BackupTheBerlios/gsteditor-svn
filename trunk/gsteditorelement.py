@@ -12,6 +12,11 @@ class ElementModel(gobject.GObject):
 
         element.connect("element-added", self._elementAddedCb)
         element.connect("element-removed", self._elementRemovedCb)
+        
+        #create widget 
+        #TODO: should be changed to a proper widget
+        self.rect = gnomecanvas.CanvasRect()
+        self.rect.x1
 
 
     def _elementAddedCb(self):

@@ -81,7 +81,7 @@ class GstEditor:
         model, select = selected.get_selected()
         newfactory = model.get_value(select, 0)
         #give it to the canvas to instantiate and draw
-        self.canvas.drawNewElement(None, newfactory)
+        self.canvas.makeNewElement(None, newfactory)
     #clean up
     dialog.destroy()
 

@@ -20,7 +20,6 @@ class GstEditorCanvas(gnomecanvas.Canvas):
         element = factory.make(name)
         #need some kind of workaround for bins and pipelines here
         self.pipeline.addElement(element)
-        raise NotImplementedError
     
     def moveElement(self, element):
         "Repositions an element on the canvas and re-draws connectors"
