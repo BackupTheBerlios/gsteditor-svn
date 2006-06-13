@@ -18,15 +18,24 @@ class ElementModel(gobject.GObject):
         #element.connect("element-removed", self._elementRemovedCb)
         
         #create widget 
-        #TODO: should be changed to a proper widget
-        self.widget = goocanvas.Rect(x=100, y=100, width=100, height=66,
+        #TODO: draw pads
+        self.widget = goocanvas.Group()
+        
+        box = goocanvas.Rect(x=100, y=100, width=100, height=66,
                                     line_width=3, stroke_color="black",
-                                    fill_color="grey")
-        text = goocanvas.Text(text=description, x=50, y=33, anchor=gtk.ANCHOR_CENTER,
-                                font="Sans 18")
+                                    fill_color="grey", radius_y=5, radius_x=5)
+        text = goocanvas.Text(x=150, y=133, width=80, text=description, 
+                            anchor=gtk.ANCHOR_CENTER, font="Sans 9")
+        self.widget.add_child(box)
         self.widget.add_child(text)
         #draw pads
         #need to attach signals and events here
+        #self.connect("button_press_event", self._onButtonPress)
+
+    def onButtonPress(self, view, event):
+        "update widget for drag move"
+#        self.widget.translate(newx-dragx, newy-dragy)
+        print event
 
     def _elementAddedCb(self):
         raise NotImplementedError

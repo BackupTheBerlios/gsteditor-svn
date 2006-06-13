@@ -22,11 +22,14 @@ class GstEditorCanvas(goocanvas.CanvasView):
 
         # create a main pipeline to contain all child elements
         self.pipeline = gsteditorelement.PipelineModel()
+        
+        #set callback to catch new element creation so we can set events
+        self.connect("item_view_created", self.onItemViewCreated)
     
     def makeNewElement(self, name, factory):
         "Creates a new Gst element and draws it on the canvas"
         element = factory.create(name)
-        desc = factory.get_description()
+        desc = factory.get_longname()
         #need some kind of workaround for bins and pipelines here
         self.pipeline.addElement(element)
         
@@ -34,6 +37,8 @@ class GstEditorCanvas(goocanvas.CanvasView):
                                         element, desc)
         self.root.add_child(elementmodel.widget)
         
+    def onItemViewCreated(self, itemview, item, event):
+        print "element created"
     
     def moveElement(self, element):
         "Repositions an element on the canvas and re-draws connectors"
