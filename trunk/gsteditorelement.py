@@ -1,23 +1,32 @@
 import gst
 import gtk
 import gobject
+import goocanvas
 
 class ElementModel(gobject.GObject):
     "GstElement Model"
     
-    def __init__(self, name=None, element=None):
+    def __init__(self, name=None, element=None, description=None):
         if not element:
             element = gst.Element(name)
         gobject.GObject.__init__(self)
+        
+        self.name = name
+        self.description = description
 
-        element.connect("element-added", self._elementAddedCb)
-        element.connect("element-removed", self._elementRemovedCb)
+        #element.connect("element-added", self._elementAddedCb)
+        #element.connect("element-removed", self._elementRemovedCb)
         
         #create widget 
         #TODO: should be changed to a proper widget
-        self.rect = gnomecanvas.CanvasRect()
-        self.rect.x1
-
+        self.widget = goocanvas.Rect(x=100, y=100, width=100, height=66,
+                                    line_width=3, stroke_color="black",
+                                    fill_color="grey")
+        text = goocanvas.Text(text=description, x=50, y=33, anchor=gtk.ANCHOR_CENTER,
+                                font="Sans 18")
+        self.widget.add_child(text)
+        #draw pads
+        #need to attach signals and events here
 
     def _elementAddedCb(self):
         raise NotImplementedError
@@ -34,15 +43,16 @@ class BinModel(ElementModel):
         if not bin:
             bin = gst.Bin(name)
         ElementModel.__init__(self, name, bin)
+        self.bin = bin
         
     # actions possible, DON'T update UI here
     # CONTROLLER
 
     def addElement(self, element):
-        self._object.add(element)
+        self.bin.add(element)
     
     def removeElement(self, element):
-        self._object.remove(element)
+        self.bin.remove(element)
         
 
     # Callbacks from gst.Bin, update UI here
