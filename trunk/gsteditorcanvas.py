@@ -26,7 +26,7 @@ class GstEditorCanvas(goocanvas.CanvasView):
         
         #set callback to catch new element creation so we can set events
         self.connect("item_view_created", self.onItemViewCreated)
-        self.connect("button_press_event", self.doEvent)
+        #self.connect("button_press_event", self.doEvent)
     
     def doEvent(self, widget, event=None):
         if event.type == gtk.gdk.BUTTON_PRESS:
@@ -60,7 +60,7 @@ class GstEditorCanvas(goocanvas.CanvasView):
         elementmodel = gsteditorelement.ElementModel(element.get_name(), 
                                         element, desc)
         self.root.add_child(elementmodel.widget)
-        
+                
     def onItemViewCreated(self, itemview, item, event):
         print "element created"
     
