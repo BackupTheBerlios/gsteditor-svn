@@ -1,4 +1,5 @@
 import goocanvas
+import gtk
 
 import gsteditorelement
 
@@ -25,6 +26,29 @@ class GstEditorCanvas(goocanvas.CanvasView):
         
         #set callback to catch new element creation so we can set events
         self.connect("item_view_created", self.onItemViewCreated)
+        self.connect("button_press_event", self.doEvent)
+    
+    def doEvent(self, widget, event=None):
+        if event.type == gtk.gdk.BUTTON_PRESS:
+            if event.button == 1:
+                # Remember starting position.
+                self.remember_x = event.x
+                self.remember_y = event.y
+                print "clicked on" + event.__dict__
+                return gtk.TRUE
+            
+        if event.type == gtk.gdk.MOTION_NOTIFY:
+            if event.state & gtk.gdk.BUTTON1_MASK:
+                # Get the new position and move by the difference
+                new_x = event.x
+                new_y = event.y
+
+                widget.move(new_x - self.remember_x, new_y - self.remember_y)
+
+                self.remember_x = new_x
+                self.remember_y = new_y
+
+                return gtk.TRUE
     
     def makeNewElement(self, name, factory):
         "Creates a new Gst element and draws it on the canvas"

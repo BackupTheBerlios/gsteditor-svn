@@ -19,7 +19,7 @@ class ElementModel(gobject.GObject):
         
         #create widget 
         #TODO: draw pads
-        self.widget = goocanvas.Group()
+        self.widget = goocanvas.GroupView()
         
         box = goocanvas.Rect(x=100, y=100, width=100, height=66,
                                     line_width=3, stroke_color="black",
@@ -30,12 +30,12 @@ class ElementModel(gobject.GObject):
         self.widget.add_child(text)
         #draw pads
         #need to attach signals and events here
-        #self.connect("button_press_event", self._onButtonPress)
+        self.connect("button_press_event", self._onButtonPress)
 
     def onButtonPress(self, view, event):
         "update widget for drag move"
 #        self.widget.translate(newx-dragx, newy-dragy)
-        print event
+        print "clikced!"
 
     def _elementAddedCb(self):
         raise NotImplementedError
