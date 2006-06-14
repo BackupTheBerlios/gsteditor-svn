@@ -26,15 +26,16 @@ class GstEditorCanvas(goocanvas.CanvasView):
         
         #set callback to catch new element creation so we can set events
         self.connect("item_view_created", self.onItemViewCreated)
-        #self.connect("button_press_event", self.doEvent)
+        
+        #set callbacks for background clicks
     
-    def doEvent(self, widget, event=None):
+    def doEvent(view, target, event):
         if event.type == gtk.gdk.BUTTON_PRESS:
+            print "got button click: "
             if event.button == 1:
                 # Remember starting position.
-                self.remember_x = event.x
-                self.remember_y = event.y
-                print "clicked on" + event.__dict__
+                view.remember_x = event.x
+                view.remember_y = event.y
                 return gtk.TRUE
             
         if event.type == gtk.gdk.MOTION_NOTIFY:
@@ -43,10 +44,10 @@ class GstEditorCanvas(goocanvas.CanvasView):
                 new_x = event.x
                 new_y = event.y
 
-                widget.move(new_x - self.remember_x, new_y - self.remember_y)
+                target.move(new_x - self.remember_x, new_y - self.remember_y)
 
-                self.remember_x = new_x
-                self.remember_y = new_y
+                view.remember_x = new_x
+                view.remember_y = new_y
 
                 return gtk.TRUE
     
@@ -59,10 +60,9 @@ class GstEditorCanvas(goocanvas.CanvasView):
         
         elementmodel = gsteditorelement.ElementModel(element.get_name(), 
                                         element, desc)
+        self.newelement = elementmodel
         self.root.add_child(elementmodel.widget)
-                
-    def onItemViewCreated(self, itemview, item, event):
-        print "element created"
+        
     
     def moveElement(self, element):
         "Repositions an element on the canvas and re-draws connectors"
@@ -80,3 +80,12 @@ class GstEditorCanvas(goocanvas.CanvasView):
         "Draws a new connector from a src to a sink"
         raise NotImplementedError
     
+    def onItemViewCreated(self, view, itemview, item):
+        print "element created"
+        #this assumes any Group is an element.  this may need to change...
+        if isinstance(item, goocanvas.Group):
+            print "connected signal"
+            itemview.connect("button_press_event", self.newelement.onButtonPress)
+            itemview.connect("motion_notify_event", self.newelement.onMotion)
+            itemview.connect("enter_notify_event", self.newelement.onEnter)
+            itemview.connect("leave_notify_event", self.newelement.onLeave)

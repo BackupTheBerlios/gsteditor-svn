@@ -8,7 +8,7 @@ class ElementModel(gobject.GObject):
     
     def __init__(self, name=None, element=None, description=None):
         if not element:
-            element = gst.Element(name)
+            element = gst.element_factory_make("fakesrc")
         gobject.GObject.__init__(self)
         
         self.name = name
@@ -32,10 +32,37 @@ class ElementModel(gobject.GObject):
         #need to attach signals and events here
         #self.connect("button_press_event", self._onButtonPress)
 
-    def onButtonPress(self, view, event):
-        "update widget for drag move"
-#        self.widget.translate(newx-dragx, newy-dragy)
-        print "clikced!"
+    def onButtonPress(self, view, target, event):
+        "handle button clicks"
+        if event.type == gtk.gdk.BUTTON_PRESS:
+            if event.button == 1:
+                # Remember starting position for drag moves.
+                self.drag_x = event.x
+                self.drag_y = event.y
+                return True
+
+            elif event.button == 2:
+                #TODO: pop up menu
+                return True
+        
+    def onMotion(self, view, target, event):
+        #drag move
+        if event.state & gtk.gdk.BUTTON1_MASK:
+            # Get the new position and move by the difference
+            new_x = event.x
+            new_y = event.y
+
+            self.widget.translate(new_x - self.drag_x, new_y - self.drag_y)
+
+            return True
+        
+    def onEnter(self, view, target, event):
+        "display the pads when mousing over"
+        print "show the pads now"
+        
+    def onLeave(self, view, target, event): 
+        "hide the pads when mousing out"
+        print "hiding pads..."
 
     def _elementAddedCb(self):
         raise NotImplementedError
