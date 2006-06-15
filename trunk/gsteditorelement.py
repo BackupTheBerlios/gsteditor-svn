@@ -8,7 +8,9 @@ class ElementModel(gobject.GObject):
     
     def __init__(self, name=None, element=None, description=None):
         if not element:
-            element = gst.element_factory_make("fakesrc")
+            self.element = gst.element_factory_make("fakesrc")
+        else: 
+            self.element = element
         gobject.GObject.__init__(self)
         
         self.name = name
@@ -18,7 +20,6 @@ class ElementModel(gobject.GObject):
         #element.connect("element-removed", self._elementRemovedCb)
         
         #create widget 
-        #TODO: draw pads
         self.widget = goocanvas.Group()
         
         box = goocanvas.Rect(x=100, y=100, width=100, height=66,
@@ -29,8 +30,48 @@ class ElementModel(gobject.GObject):
         self.widget.add_child(box)
         self.widget.add_child(text)
         #draw pads
-        #need to attach signals and events here
+        self.pads = self._makePads()
+        self.hidePads()
+        self.widget.add_child(self.pads)
+        #need to attach pad signals and events here
         #self.connect("button_press_event", self._onButtonPress)
+
+    def _makePads(self):
+        "Creates a Group containing individual pad widgets"
+        #TODO: color code based on caps
+        pgroup = goocanvas.Group()
+        lefty = 109
+        righty = 109
+        leftx = 109
+        rightx = 191
+        padlist = self.element.pads()
+        count = 0
+        for pad in padlist:
+            count += 1
+            direction = pad.get_direction()
+            if (direction == gst.PAD_SINK):
+                plug = goocanvas.Ellipse(center_x = leftx, center_y = lefty,
+                                        radius_x = 4, radius_y = 5,
+                                        fill_color = "yellow", line_width = 1,
+                                        stroke_color = "black")
+                pgroup.add_child(plug)
+                lefty += 10
+            elif (direction == gst.PAD_SRC):
+                plug = goocanvas.Ellipse(center_x = rightx, center_y = righty,
+                                        radius_x = 4, radius_y = 5,
+                                        fill_color = "blue", line_width = 1,
+                                        stroke_color = "black")
+                pgroup.add_child(plug)
+                righty += 10
+        print "total pads: " + str(count)
+        return pgroup
+                
+        
+    def hidePads(self):
+        pass
+        
+    def showPads(self):
+        pass
 
     def onButtonPress(self, view, target, event):
         "handle button clicks"
@@ -44,6 +85,8 @@ class ElementModel(gobject.GObject):
             elif event.button == 2:
                 #TODO: pop up menu
                 return True
+            
+            #TODO: double click to pop up element parameters window
         
     def onMotion(self, view, target, event):
         #drag move
@@ -58,14 +101,11 @@ class ElementModel(gobject.GObject):
         
     def onEnter(self, view, target, event):
         "display the pads when mousing over"
-        print "show the pads now"
+        self.showPads()
         
     def onLeave(self, view, target, event): 
         "hide the pads when mousing out"
-        print "hiding pads..."
-
-    def _elementAddedCb(self):
-        raise NotImplementedError
+        self.hidePads()
     
     def _elementRemovedCb(self):
         raise NotImplementedError
