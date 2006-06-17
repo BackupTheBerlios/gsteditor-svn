@@ -22,18 +22,18 @@ class ElementModel(gobject.GObject):
         #create widget 
         self.widget = goocanvas.Group()
         
-        box = goocanvas.Rect(x=100, y=100, width=100, height=66,
+        self.box = goocanvas.Rect(x=100, y=100, width=100, height=66,
                                     line_width=3, stroke_color="black",
                                     fill_color="grey", radius_y=5, radius_x=5)
         text = goocanvas.Text(x=150, y=133, width=80, text=description, 
                             anchor=gtk.ANCHOR_CENTER, font="Sans 9")
-        self.widget.add_child(box)
+        self.widget.add_child(self.box)
         self.widget.add_child(text)
         #draw pads
         self.pads = self._makePads()
         self.hidePads()
         self.widget.add_child(self.pads)
-        #need to attach pad signals and events here
+        #TODO: attach pad signals and events here
         #self.connect("button_press_event", self._onButtonPress)
 
     def _makePads(self):
@@ -44,28 +44,36 @@ class ElementModel(gobject.GObject):
         righty = 109
         leftx = 109
         rightx = 191
-        padlist = self.element.pads()
+        factory = self.element.get_factory()
+        padlist = factory.get_static_pad_templates()
         count = 0
         for pad in padlist:
             count += 1
-            direction = pad.get_direction()
-            if (direction == gst.PAD_SINK):
+            if (pad.direction == gst.PAD_SINK):
                 plug = goocanvas.Ellipse(center_x = leftx, center_y = lefty,
-                                        radius_x = 4, radius_y = 5,
-                                        fill_color = "yellow", line_width = 1,
+                                        radius_x = 4, radius_y = 4,
+                                        fill_color = "yellow", line_width = 2,
                                         stroke_color = "black")
                 pgroup.add_child(plug)
-                lefty += 10
-            elif (direction == gst.PAD_SRC):
+                lefty += 12
+            elif (pad.direction == gst.PAD_SRC):
                 plug = goocanvas.Ellipse(center_x = rightx, center_y = righty,
-                                        radius_x = 4, radius_y = 5,
-                                        fill_color = "blue", line_width = 1,
+                                        radius_x = 4, radius_y = 4,
+                                        fill_color = "blue", line_width = 2,
                                         stroke_color = "black")
                 pgroup.add_child(plug)
-                righty += 10
+                righty += 12
         print "total pads: " + str(count)
+        
+        # resize the Rect if there are more than 5 sinks or src pads
+        if (righty > lefty):
+            biggerside = righty
+        else: 
+            biggerside = lefty
+        if biggerside > 157:
+            self.box.set_property("height", biggerside - 103)
+            
         return pgroup
-                
         
     def hidePads(self):
         pass
