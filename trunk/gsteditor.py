@@ -33,12 +33,17 @@ class GstEditor:
     canvasSW = self.widgets.get_widget("canvasSW")
     canvasSW.add(self.canvas)
     
-    
     #connect buttons
     dict = { "destroyWindow": self._destroyWindow,
             "addElement": self._addElement,
             "loadFromFile": self._loadFromFile }
     self.widgets.signal_autoconnect(dict)
+    
+    #pass the popup menu to the canvas
+    self.popwidgets = gtk.glade.XML(self.gladefile, "popupMenu")
+    popup = self.popwidgets.get_widget("popupMenu")
+    self.popwidgets.signal_autoconnect(self)
+    self.canvas.setPopup(popup)
     
   def _loadFromFile(self, widget, event):
     "Load GST Editor pipeline setup from a file and initialize"
@@ -48,6 +53,10 @@ class GstEditor:
     "Kills the app and cleans up"
     
     gtk.main_quit()
+  
+  def _addElementPopup(self, event):
+    "Calls add element from a popup menu selection"
+    self._addElement(None, event)
 
   def _addElement(self, widget, event):
     "Pops open a dialog and adds a GST element to the editor pipeline"

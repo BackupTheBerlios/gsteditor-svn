@@ -28,28 +28,18 @@ class GstEditorCanvas(goocanvas.CanvasView):
         self.connect("item_view_created", self.onItemViewCreated)
         
         #set callbacks for background clicks
+        self.connect("button_press_event", self._onButtonPress)
+        
+    def setPopup(self, popup):
+        self.popup = popup
     
-    def doEvent(view, target, event):
+    def _onButtonPress(self, view, event):
         if event.type == gtk.gdk.BUTTON_PRESS:
-            print "got button click: "
-            if event.button == 1:
-                # Remember starting position.
-                view.remember_x = event.x
-                view.remember_y = event.y
-                return gtk.TRUE
-            
-        if event.type == gtk.gdk.MOTION_NOTIFY:
-            if event.state & gtk.gdk.BUTTON1_MASK:
-                # Get the new position and move by the difference
-                new_x = event.x
-                new_y = event.y
-
-                target.move(new_x - self.remember_x, new_y - self.remember_y)
-
-                view.remember_x = new_x
-                view.remember_y = new_y
-
-                return gtk.TRUE
+            if event.button == 3:
+                # pop up menu
+                print "popup menu"
+                self.popup.popup(None, None, None, event.button, event.time)
+                return True
     
     def makeNewElement(self, name, factory):
         "Creates a new Gst element and draws it on the canvas"

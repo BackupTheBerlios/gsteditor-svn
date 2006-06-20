@@ -40,11 +40,18 @@ class ElementModel(gobject.GObject):
         "Creates a Group containing individual pad widgets"
         #TODO: color code based on caps
         pgroup = goocanvas.Group()
+        
+        #set a creation callback so we can grab the view and set up callbacks
+        pgroup.connect("child_added", self._onPadAdded)
+        
+        pgroup
         lefty = 109
         righty = 109
         leftx = 109
         rightx = 191
         factory = self.element.get_factory()
+        numpads = factory.get_num_pad_templates()
+        print "total possible pad templates: " + str(numpads)
         padlist = factory.get_static_pad_templates()
         count = 0
         for pad in padlist:
@@ -75,6 +82,10 @@ class ElementModel(gobject.GObject):
             
         return pgroup
         
+    def _onPadAdded(self, view, itemview, item):
+        print "pad added"
+        pass
+    
     def hidePads(self):
         pass
         
@@ -90,10 +101,10 @@ class ElementModel(gobject.GObject):
                 self.drag_y = event.y
                 return True
 
-            elif event.button == 2:
+            elif event.button == 3:
                 #TODO: pop up menu
-                return True
-            
+                print "element popup"
+                return False
             #TODO: double click to pop up element parameters window
         
     def onMotion(self, view, target, event):
