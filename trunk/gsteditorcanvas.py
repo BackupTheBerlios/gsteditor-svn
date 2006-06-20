@@ -28,7 +28,7 @@ class GstEditorCanvas(goocanvas.CanvasView):
         self.connect("item_view_created", self.onItemViewCreated)
         
         #set callbacks for background clicks
-        self.connect("button_press_event", self._onButtonPress)
+        self.connect_after("button_press_event", self._onButtonPress)
         
     def setPopup(self, popup):
         self.popup = popup

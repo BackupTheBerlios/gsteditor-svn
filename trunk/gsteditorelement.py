@@ -104,7 +104,7 @@ class ElementModel(gobject.GObject):
             elif event.button == 3:
                 #TODO: pop up menu
                 print "element popup"
-                return False
+                return True
             #TODO: double click to pop up element parameters window
         
     def onMotion(self, view, target, event):
