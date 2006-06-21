@@ -50,12 +50,8 @@ class ElementModel(gobject.GObject):
         leftx = 109
         rightx = 191
         factory = self.element.get_factory()
-        numpads = factory.get_num_pad_templates()
-        print "total possible pad templates: " + str(numpads)
         padlist = factory.get_static_pad_templates()
-        count = 0
         for pad in padlist:
-            count += 1
             if (pad.direction == gst.PAD_SINK):
                 plug = goocanvas.Ellipse(center_x = leftx, center_y = lefty,
                                         radius_x = 4, radius_y = 4,
@@ -70,7 +66,6 @@ class ElementModel(gobject.GObject):
                                         stroke_color = "black")
                 pgroup.add_child(plug)
                 righty += 12
-        print "total pads: " + str(count)
         
         # resize the Rect if there are more than 5 sinks or src pads
         if (righty > lefty):
@@ -82,9 +77,16 @@ class ElementModel(gobject.GObject):
             
         return pgroup
         
-    def _onPadAdded(self, view, itemview, item):
-        print "pad added"
-        pass
+    def _onPadAdded(self, view, event):
+        "set mouse-overs for new pads"
+        view.connect("enter_notify_event", self._padEnter)
+        view.connect("exit_notify_event", self._padExit) 
+        
+    def _padEnter(self, view, event):
+        print "pad mouseover"
+        
+    def _padExit(self, view, event):
+        print "pad mouseout"
     
     def hidePads(self):
         pass
