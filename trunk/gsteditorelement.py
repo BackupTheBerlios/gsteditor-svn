@@ -15,9 +15,6 @@ class ElementModel(gobject.GObject):
         
         self.name = name
         self.description = description
-
-        #element.connect("element-added", self._elementAddedCb)
-        #element.connect("element-removed", self._elementRemovedCb)
         
         #create widget 
         self.widget = goocanvas.Group()
@@ -33,16 +30,11 @@ class ElementModel(gobject.GObject):
         self.pads = self._makePads()
         self.hidePads()
         self.widget.add_child(self.pads)
-        #TODO: attach pad signals and events here
-        #self.connect("button_press_event", self._onButtonPress)
 
     def _makePads(self):
         "Creates a Group containing individual pad widgets"
         #TODO: color code based on caps
         pgroup = goocanvas.Group()
-        
-        #set a creation callback so we can grab the view and set up callbacks
-        pgroup.connect("child_added", self._onPadAdded)
         
         pgroup
         lefty = 109
@@ -51,12 +43,15 @@ class ElementModel(gobject.GObject):
         rightx = 191
         factory = self.element.get_factory()
         padlist = factory.get_static_pad_templates()
+        #TODO: clean and optimize this loop
         for pad in padlist:
             if (pad.direction == gst.PAD_SINK):
                 plug = goocanvas.Ellipse(center_x = leftx, center_y = lefty,
                                         radius_x = 4, radius_y = 4,
                                         fill_color = "yellow", line_width = 2,
                                         stroke_color = "black")
+                plug.set_data("item_type","pad")
+                plug.set_data("pad",pad)
                 pgroup.add_child(plug)
                 lefty += 12
             elif (pad.direction == gst.PAD_SRC):
@@ -64,6 +59,8 @@ class ElementModel(gobject.GObject):
                                         radius_x = 4, radius_y = 4,
                                         fill_color = "blue", line_width = 2,
                                         stroke_color = "black")
+                plug.set_data("pad",pad)
+                plug.set_data("item_type","pad")
                 pgroup.add_child(plug)
                 righty += 12
         
@@ -77,16 +74,19 @@ class ElementModel(gobject.GObject):
             
         return pgroup
         
-    def _onPadAdded(self, view, event):
-        "set mouse-overs for new pads"
-        view.connect("enter_notify_event", self._padEnter)
-        view.connect("exit_notify_event", self._padExit) 
-        
-    def _padEnter(self, view, event):
+    def onPadEnter(self, view, target, event, pad):
+        item = target.get_item()
+        item.set_property("stroke_color", "green")
         print "pad mouseover"
         
-    def _padExit(self, view, event):
+        
+    def onPadLeave(self, view, target, event, pad):
+        item = target.get_item()
+        item.set_property("stroke_color", "black")
         print "pad mouseout"
+        
+    def onPadPress(self, view, target, event, pad):
+        print "pad clicked"
     
     def hidePads(self):
         pass

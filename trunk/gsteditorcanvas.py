@@ -71,8 +71,14 @@ class GstEditorCanvas(goocanvas.CanvasView):
         raise NotImplementedError
     
     def onItemViewCreated(self, view, itemview, item):
-        print "element created"
+        "Callback connects all other signals and events for new items"
         #this assumes any Group is an element.  this may need to change...
+        if item.get_data("item_type") == "pad":
+            print "connecting pad signals"
+            pad = item.get_data("pad")
+            itemview.connect("enter_notify_event", self.newelement.onPadEnter, pad)
+            itemview.connect("leave_notify_event", self.newelement.onPadLeave, pad)
+            itemview.connect("button_press_event", self.newelement.onPadPress, pad)
         if isinstance(item, goocanvas.Group):
             print "connected signal"
             itemview.connect("button_press_event", self.newelement.onButtonPress)
