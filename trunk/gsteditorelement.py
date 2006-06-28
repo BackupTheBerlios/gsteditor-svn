@@ -43,9 +43,7 @@ class ElementModel(gobject.GObject):
         rightx = 191
         factory = self.element.get_factory()
         templist = factory.get_static_pad_templates()
-        #workaround for empty elements
-        #if not padlist: 
-         #   return pgroup
+
         #TODO: clean and optimize this loop
         for template in templist:
             #add any not yet existing pads using templates
@@ -60,16 +58,35 @@ class ElementModel(gobject.GObject):
                                         radius_x = 4, radius_y = 4,
                                         fill_color = "yellow", line_width = 2,
                                         stroke_color = "black")
-                tooltip = goocanvas.Text(x= leftx - 20, y = lefty, font = "Sans 9",
-                                        text=pad.get_name(), anchor=gtk.ANCHOR_E)
+                tooltip = goocanvas.Group()
+                tipwidth = 8 * len(pad.get_name())
+                tiptext = goocanvas.Text(x= leftx - (tipwidth + 16), y = lefty, font = "Sans 9",
+                                        text=pad.get_name(), anchor=gtk.ANCHOR_W)
+                #TODO: get a better width calculation
+                tipbg = goocanvas.Rect(x = leftx - (tipwidth + 18), y = lefty - 8, height = 16,
+                                        width = tipwidth, line_width = 1,
+                                        stroke_color = "red", fill_color = "pink")
+                tooltip.add_child(tipbg)
+                tooltip.add_child(tiptext)
+                tooltip.set_property("visibility", goocanvas.INVISIBLE)
                 lefty += 12
             elif (pad.get_direction() == gst.PAD_SRC):
                 plug = goocanvas.Ellipse(center_x = rightx, center_y = righty,
                                         radius_x = 4, radius_y = 4,
                                         fill_color = "blue", line_width = 2,
                                         stroke_color = "black")
-                tooltip = goocanvas.Text(x= rightx + 20, y = righty, font = "Sans 9",
+                tooltip = goocanvas.Group()
+                #TODO: prettify the string to remove underscores and such
+                tiptext = goocanvas.Text(x= rightx + 20, y = righty, font = "Sans 9",
                                         text=pad.get_name(), anchor=gtk.ANCHOR_W)
+                #TODO: get a better width calculation
+                tipwidth = 8 * len(pad.get_name())
+                tipbg = goocanvas.Rect(x = rightx + 16, y = righty - 8, height = 16,
+                                        width = tipwidth, line_width = 1,
+                                        stroke_color = "red", fill_color = "pink")
+                tooltip.add_child(tipbg)
+                tooltip.add_child(tiptext)
+                tooltip.set_property("visibility", goocanvas.INVISIBLE)
                 righty += 12
             else:
                 print "mystery pad:  " + pad.get_name()
@@ -102,9 +119,11 @@ class ElementModel(gobject.GObject):
         item = target.get_item()
         item.set_property("stroke_color", "green")
         pad = item.get_data("pad")
+        #show tooltip
         tooltip = item.get_data("tooltip")
-        #TODO: show tooltip:
-        print "pad: " + pad.get_name()
+        tooltip.set_property("visibility", goocanvas.VISIBLE)
+        #tooltip.raise_(None)
+        #TODO: set tooltip to be top layer (sort out raise_ and lower)
         return True
         
     def onPadLeave(self, view, target, event):
@@ -112,7 +131,9 @@ class ElementModel(gobject.GObject):
         #reset the stroke color
         item = target.get_item()
         item.set_property("stroke_color", "black")
-        #TODO: hide tooltip
+        pad = item.get_data("pad")
+        tooltip = item.get_data("tooltip")
+        tooltip.set_property("visibility", goocanvas.INVISIBLE)
         return True
         
     def onPadPress(self, view, target, event):
@@ -132,6 +153,8 @@ class ElementModel(gobject.GObject):
     def onButtonPress(self, view, target, event):
         "handle button clicks"
         if event.type == gtk.gdk.BUTTON_PRESS:
+            #TODO: sort out raise_ and lower to make this work
+            #self.widget.raise_()
             if event.button == 1:
                 # Remember starting position for drag moves.
                 self.drag_x = event.x
