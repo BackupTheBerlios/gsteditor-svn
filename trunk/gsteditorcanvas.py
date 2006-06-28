@@ -75,10 +75,10 @@ class GstEditorCanvas(goocanvas.CanvasView):
         #this assumes any Group is an element.  this may need to change...
         if item.get_data("item_type") == "pad":
             print "connecting pad signals"
-            pad = item.get_data("pad")
-            itemview.connect("enter_notify_event", self.newelement.onPadEnter, pad)
-            itemview.connect("leave_notify_event", self.newelement.onPadLeave, pad)
-            itemview.connect("button_press_event", self.newelement.onPadPress, pad)
+            itemview.connect("enter_notify_event", self.newelement.onPadEnter)
+            itemview.connect("leave_notify_event", self.newelement.onPadLeave)
+            itemview.connect("motion_notify_event", self.newelement.onPadMotion)
+            itemview.connect("button_press_event", self.newelement.onPadPress)
         if isinstance(item, goocanvas.Group):
             print "connected signal"
             itemview.connect("button_press_event", self.newelement.onButtonPress)

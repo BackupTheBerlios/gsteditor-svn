@@ -22,6 +22,8 @@ class GstEditor:
  
   def __init__(self,name=None):
     "Initialize a new GSTEditor"
+
+    print gst.version_string()
     
     gnome.init(APPNAME, APPVERSION)
     self.name = name

@@ -42,28 +42,50 @@ class ElementModel(gobject.GObject):
         leftx = 109
         rightx = 191
         factory = self.element.get_factory()
-        padlist = factory.get_static_pad_templates()
+        templist = factory.get_static_pad_templates()
+        #workaround for empty elements
+        #if not padlist: 
+         #   return pgroup
         #TODO: clean and optimize this loop
-        for pad in padlist:
-            if (pad.direction == gst.PAD_SINK):
+        for template in templist:
+            #add any not yet existing pads using templates
+            pad = self.element.get_pad(template.name_template)
+            if not pad:
+                pad = gst.pad_new_from_static_template(template, template.name_template)
+                self.element.add_pad(pad)
+
+            #draw the pads
+            if (pad.get_direction() == gst.PAD_SINK):
                 plug = goocanvas.Ellipse(center_x = leftx, center_y = lefty,
                                         radius_x = 4, radius_y = 4,
                                         fill_color = "yellow", line_width = 2,
                                         stroke_color = "black")
-                plug.set_data("item_type","pad")
-                plug.set_data("pad",pad)
-                pgroup.add_child(plug)
+                tooltip = goocanvas.Text(x= leftx - 20, y = lefty, font = "Sans 9",
+                                        text=pad.get_name(), anchor=gtk.ANCHOR_E)
                 lefty += 12
-            elif (pad.direction == gst.PAD_SRC):
+            elif (pad.get_direction() == gst.PAD_SRC):
                 plug = goocanvas.Ellipse(center_x = rightx, center_y = righty,
                                         radius_x = 4, radius_y = 4,
                                         fill_color = "blue", line_width = 2,
                                         stroke_color = "black")
-                plug.set_data("pad",pad)
-                plug.set_data("item_type","pad")
-                pgroup.add_child(plug)
+                tooltip = goocanvas.Text(x= rightx + 20, y = righty, font = "Sans 9",
+                                        text=pad.get_name(), anchor=gtk.ANCHOR_W)
                 righty += 12
+            else:
+                print "mystery pad:  " + pad.get_name()
+            
+            #add the pad widget to the group and set references
+            plug.set_data("pad",pad)
+            plug.set_data("item_type","pad")
+            plug.set_data("tooltip", tooltip)
+            pgroup.add_child(plug)
+            pgroup.add_child(tooltip)
         
+        pads = self.element.pads()
+        padcount = 0
+        for pad in pads:
+            padcount += 1
+        print "total pads: " + str(padcount)
         # resize the Rect if there are more than 5 sinks or src pads
         if (righty > lefty):
             biggerside = righty
@@ -74,19 +96,32 @@ class ElementModel(gobject.GObject):
             
         return pgroup
         
-    def onPadEnter(self, view, target, event, pad):
+    def onPadEnter(self, view, target, event):
+        "mouse over callback for pads"
+        #highlight stroke color
         item = target.get_item()
         item.set_property("stroke_color", "green")
-        print "pad mouseover"
+        pad = item.get_data("pad")
+        tooltip = item.get_data("tooltip")
+        #TODO: show tooltip:
+        print "pad: " + pad.get_name()
+        return True
         
-        
-    def onPadLeave(self, view, target, event, pad):
+    def onPadLeave(self, view, target, event):
+        "mouse-out callback for pads"
+        #reset the stroke color
         item = target.get_item()
         item.set_property("stroke_color", "black")
-        print "pad mouseout"
+        #TODO: hide tooltip
+        return True
         
-    def onPadPress(self, view, target, event, pad):
+    def onPadPress(self, view, target, event):
         print "pad clicked"
+        return True
+    
+    def onPadMotion(self, view, target, event):
+        print "pad drag"
+        return True
     
     def hidePads(self):
         pass
