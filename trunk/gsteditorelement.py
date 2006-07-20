@@ -68,7 +68,7 @@ class ElementModel(gobject.GObject):
                                         stroke_color = "red", fill_color = "pink")
                 tooltip.add_child(tipbg)
                 tooltip.add_child(tiptext)
-                tooltip.set_property("visibility", goocanvas.INVISIBLE)
+                tooltip.set_property("visibility", goocanvas.ITEM_INVISIBLE)
                 lefty += 12
             elif (pad.get_direction() == gst.PAD_SRC):
                 plug = goocanvas.Ellipse(center_x = rightx, center_y = righty,
@@ -86,7 +86,7 @@ class ElementModel(gobject.GObject):
                                         stroke_color = "red", fill_color = "pink")
                 tooltip.add_child(tipbg)
                 tooltip.add_child(tiptext)
-                tooltip.set_property("visibility", goocanvas.INVISIBLE)
+                tooltip.set_property("visibility", goocanvas.ITEM_INVISIBLE)
                 righty += 12
             else:
                 print "mystery pad:  " + pad.get_name()
@@ -121,7 +121,7 @@ class ElementModel(gobject.GObject):
         pad = item.get_data("pad")
         #show tooltip
         tooltip = item.get_data("tooltip")
-        tooltip.set_property("visibility", goocanvas.VISIBLE)
+        tooltip.set_property("visibility", goocanvas.ITEM_VISIBLE)
         #tooltip.raise_(None)
         #TODO: set tooltip to be top layer (sort out raise_ and lower)
         return True
@@ -133,15 +133,35 @@ class ElementModel(gobject.GObject):
         item.set_property("stroke_color", "black")
         pad = item.get_data("pad")
         tooltip = item.get_data("tooltip")
-        tooltip.set_property("visibility", goocanvas.INVISIBLE)
+        tooltip.set_property("visibility", goocanvas.ITEM_INVISIBLE)
         return True
         
     def onPadPress(self, view, target, event):
-        print "pad clicked"
+        item = target.get_item()
+        if event.button == 1:
+            # Remember starting position for drag moves.
+            self.pad_drag_x = event.x
+            self.pad_drag_y = event.y
+            x1 = item.get_property("center_x")
+            y1 = item.get_property("center_y")
+            parent = item.get_parent()
+            link = goocanvas.polyline_new_line(parent, x1, y1, event.x, event.y)
+            item.set_data("link", link)
+            print "drawing link"
+            return True
+        elif event.button == 3:
+            #TODO: delete connector
+            pass
         return True
     
     def onPadMotion(self, view, target, event):
-        print "pad drag"
+        if event.state & gtk.gdk.BUTTON1_MASK:
+            item = target.get_item()
+            link = item.get_data("link")
+            if link:
+                print "dragging link"
+                link.set_property("x2", event.x)
+                link.set_property("y2", event.y)
         return True
     
     def hidePads(self):

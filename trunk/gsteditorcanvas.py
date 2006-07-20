@@ -37,7 +37,6 @@ class GstEditorCanvas(goocanvas.CanvasView):
         if event.type == gtk.gdk.BUTTON_PRESS:
             if event.button == 3:
                 # pop up menu
-                print "popup menu"
                 self.popup.popup(None, None, None, event.button, event.time)
                 return True
     
@@ -74,13 +73,11 @@ class GstEditorCanvas(goocanvas.CanvasView):
         "Callback connects all other signals and events for new items"
         #this assumes any Group is an element.  this may need to change...
         if item.get_data("item_type") == "pad":
-            print "connecting pad signals"
             itemview.connect("enter_notify_event", self.newelement.onPadEnter)
             itemview.connect("leave_notify_event", self.newelement.onPadLeave)
             itemview.connect("motion_notify_event", self.newelement.onPadMotion)
             itemview.connect("button_press_event", self.newelement.onPadPress)
         if isinstance(item, goocanvas.Group):
-            print "connected signal"
             itemview.connect("button_press_event", self.newelement.onButtonPress)
             itemview.connect("motion_notify_event", self.newelement.onMotion)
             itemview.connect("enter_notify_event", self.newelement.onEnter)
