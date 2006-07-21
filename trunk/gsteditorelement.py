@@ -160,8 +160,9 @@ class ElementModel(gobject.GObject):
             link = item.get_data("link")
             if link:
                 print "dragging link"
-                link.set_property("x2", event.x)
-                link.set_property("y2", event.y)
+                endpoint = link.points[1]
+                endpoint.set_property("x", event.x)
+                endpoint.set_property("y", event.y)
         return True
     
     def hidePads(self):
