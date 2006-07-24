@@ -28,7 +28,6 @@ class ElementModel(gobject.GObject):
         self.widget.add_child(text)
         #draw pads
         self.pads = self._makePads()
-        self.hidePads()
         self.widget.add_child(self.pads)
 
     def _makePads(self):
@@ -112,7 +111,7 @@ class ElementModel(gobject.GObject):
             self.box.set_property("height", biggerside - 103)
             
         return pgroup
-        
+    
     def onPadEnter(self, view, target, event):
         "mouse over callback for pads"
         #highlight stroke color
@@ -164,12 +163,6 @@ class ElementModel(gobject.GObject):
                 endpoint.set_property("x", event.x)
                 endpoint.set_property("y", event.y)
         return True
-    
-    def hidePads(self):
-        pass
-        
-    def showPads(self):
-        pass
 
     def onButtonPress(self, view, target, event):
         "handle button clicks"
@@ -185,6 +178,23 @@ class ElementModel(gobject.GObject):
             elif event.button == 3:
                 #TODO: pop up menu
                 print "element popup"
+                popup = gtk.Menu()
+
+                configItem = gtk.ImageMenuItem("Configure Element")
+                configimg = gtk.image_new_from_stock(gtk.STOCK_INDEX, gtk.ICON_SIZE_MENU)
+                configItem.set_image(configimg)
+                configItem.connect("activate", self._configure)
+                configItem.show()
+                popup.attach(configItem, 0, 1, 0, 1)
+                
+                deleteItem = gtk.ImageMenuItem("Delete Element")
+                deleteimg = gtk.image_new_from_stock(gtk.STOCK_DELETE, gtk.ICON_SIZE_MENU)
+                deleteItem.set_image(deleteimg)
+                deleteItem.connect("activate", self._delete)
+                deleteItem.show()
+                popup.attach(deleteItem, 0, 1, 1, 2)
+                
+                popup.popup(None, None, None, event.button, event.time)
                 return True
             #TODO: double click to pop up element parameters window
         
@@ -198,17 +208,38 @@ class ElementModel(gobject.GObject):
             self.widget.translate(new_x - self.drag_x, new_y - self.drag_y)
 
             return True
-        
-    def onEnter(self, view, target, event):
-        "display the pads when mousing over"
-        self.showPads()
-        
-    def onLeave(self, view, target, event): 
-        "hide the pads when mousing out"
-        self.hidePads()
     
     def _elementRemovedCb(self):
         raise NotImplementedError
+    
+    def _delete(self, event):
+        "un-draws the element and cleans up for deletion"
+        parent = self.widget.get_parent().get_parent()
+        dialog = gtk.Dialog('Delete Element',
+                     parent,  # the window that spawned this dialog
+                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,                       
+                     (gtk.STOCK_DELETE, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_CLOSE))
+        dialog.vbox.pack_start(gtk.Label('Are you sure?'))
+        dialog.show_all()
+        
+        rtn = dialog.run()
+        if (rtn != gtk.RESPONSE_OK):
+            print "canceled delete"
+        else:
+            self.emit("element_delete", self.widget, self)
+        #clean up
+        dialog.destroy()
+
+        pass
+        
+    def _configure(self, event):
+        "opens up the config dialog to set element parameters"
+        print "configure element\n total parameters:"
+        proplist = gobject.list_properties(self.element)
+        print len(proplist)
+        for property in proplist:
+            print property.__dict__.keys
+        return True
     
 
 

@@ -1,5 +1,6 @@
 import goocanvas
 import gtk
+import gobject
 
 import gsteditorelement
 
@@ -30,6 +31,11 @@ class GstEditorCanvas(goocanvas.CanvasView):
         #set callbacks for background clicks
         self.connect_after("button_press_event", self._onButtonPress)
         
+        #make our custom signal for deleting elements
+        gobject.signal_new("element_delete", gsteditorelement.ElementModel, 
+                        gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, 
+                        (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT))
+        
     def setPopup(self, popup):
         self.popup = popup
     
@@ -46,29 +52,21 @@ class GstEditorCanvas(goocanvas.CanvasView):
         desc = factory.get_longname()
         #need some kind of workaround for bins and pipelines here
         self.pipeline.addElement(element)
-        
         elementmodel = gsteditorelement.ElementModel(element.get_name(), 
                                         element, desc)
         self.newelement = elementmodel
         self.root.add_child(elementmodel.widget)
+        self.newelement.connect("element_delete", self.onDeleteElement)
         
-    
-    def moveElement(self, element):
-        "Repositions an element on the canvas and re-draws connectors"
-        raise NotImplementedError
-        
-    def deleteElement(self, element):
-        "Remove an element and any connecting lines from the canvas"
-        raise NotImplementedError
-    
-    def deleteConnector(self, connector):
-        "Deletes a connecting line between a src and a sink"
-        raise NotImplementedError
-    
-    def drawNewConnector(self, src, sink):
-        "Draws a new connector from a src to a sink"
-        raise NotImplementedError
-    
+    def onDeleteElement(self, event, widget, element):
+        "un-draws and deletes the element"
+        child = self.root.find_child(widget)
+        self.root.remove_child(child)
+        self.pipeline.removeElement(element.element)
+        del(element)
+        #TODO: do I need to clean up signal connections?
+        return True
+            
     def onItemViewCreated(self, view, itemview, item):
         "Callback connects all other signals and events for new items"
         #this assumes any Group is an element.  this may need to change...
@@ -80,5 +78,3 @@ class GstEditorCanvas(goocanvas.CanvasView):
         if isinstance(item, goocanvas.Group):
             itemview.connect("button_press_event", self.newelement.onButtonPress)
             itemview.connect("motion_notify_event", self.newelement.onMotion)
-            itemview.connect("enter_notify_event", self.newelement.onEnter)
-            itemview.connect("leave_notify_event", self.newelement.onLeave)

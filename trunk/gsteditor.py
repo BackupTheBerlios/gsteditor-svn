@@ -29,6 +29,7 @@ class GstEditor:
     self.name = name
     self.gladefile = "glade-sources/gsteditor.glade"
     self.widgets = gtk.glade.XML(self.gladefile, "gstEditorMainWin")
+    self.mainwin = self.widgets.get_widget("gstEditorMainWin")
     
     #start up the canvas
     self.canvas = gsteditorcanvas.GstEditorCanvas()
@@ -59,6 +60,10 @@ class GstEditor:
   def _addElementPopup(self, event):
     "Calls add element from a popup menu selection"
     self._addElement(None, event)
+
+  def _delElementPopup(self, event):
+    "Calls _delElement from a popup menu selection"
+    self._delElement(None, event)
 
   def _addElement(self, widget, event):
     "Pops open a dialog and adds a GST element to the editor pipeline"
@@ -93,6 +98,26 @@ class GstEditor:
         newfactory = model.get_value(select, 0)
         #give it to the canvas to instantiate and draw
         self.canvas.makeNewElement(None, newfactory)
+    #clean up
+    dialog.destroy()
+
+  def _delElement(self, widget, event):
+    "Pops open a confirmation dialog and deletes a GST element from the canvas"
+    
+    dialog = gtk.Dialog('Delete Element',
+                     self.mainwin,  # the window that spawned this dialog
+                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,                       
+                     ("Delete Element", gtk.RESPONSE_OK, gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE))
+    dialog.vbox.pack_start(gtk.Label('Are you sure?'))
+    dialog.show_all()
+    
+    rtn = dialog.run()
+    if (rtn != gtk.RESPONSE_OK):
+        print "canceled delete"
+    else:
+        #find out which element to delete
+        item = widget.get_item()
+        item.destroy()
     #clean up
     dialog.destroy()
 
