@@ -1,5 +1,6 @@
 import gst
 import gtk
+import gtk.glade
 import gobject
 import goocanvas
 
@@ -8,7 +9,7 @@ import gstparamwin
 class ElementModel(gobject.GObject):
     "GstElement Model"
     
-    def __init__(self, name=None, element=None, description=None):
+    def __init__(self, name=None, element=None, description=None, window=None):
         if not element:
             self.element = gst.element_factory_make("fakesrc")
         else: 
@@ -17,9 +18,11 @@ class ElementModel(gobject.GObject):
         
         self.name = name
         self.description = description
-        
+
         #create widget 
         self.widget = goocanvas.Group()
+        
+        self.mainwin = window
         
         self.box = goocanvas.Rect(x=100, y=100, width=100, height=66,
                                     line_width=3, stroke_color="black",
@@ -216,12 +219,12 @@ class ElementModel(gobject.GObject):
     
     def _delete(self, event):
         "un-draws the element and cleans up for deletion"
-        parent = self.widget.get_parent().get_parent()
         dialog = gtk.Dialog('Delete Element',
-                     parent,  # the window that spawned this dialog
+                     self.mainwin,  # the window that spawned this dialog
                      gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,                       
                      (gtk.STOCK_DELETE, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_CLOSE))
         dialog.vbox.pack_start(gtk.Label('Are you sure?'))
+        dialog.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
         dialog.show_all()
         
         rtn = dialog.run()
@@ -240,12 +243,10 @@ class ElementModel(gobject.GObject):
             self.paramWin = gstparamwin.GstParamWin(self.element)
         self.paramWin.show_all()
         
-        #TODO: make this a floating non-modal dialog
-        parent = self.widget.get_parent().get_parent()
         dialog = gtk.Dialog('Delete Element',
-                     parent,  # the window that spawned this dialog
+                     self.mainwin,  # the window that spawned this dialog
                      gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,                       
-                     (gtk.STOCK_OK, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_CLOSE))
+                     (gtk.STOCK_DELETE, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_CLOSE))
         dialog.vbox.pack_start(gtk.Label('Set Element Parameters'))
         dialog.show_all()
         

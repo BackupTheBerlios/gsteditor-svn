@@ -53,7 +53,7 @@ class GstEditorCanvas(goocanvas.CanvasView):
         #need some kind of workaround for bins and pipelines here
         self.pipeline.addElement(element)
         elementmodel = gsteditorelement.ElementModel(element.get_name(), 
-                                        element, desc)
+                                        element, desc, self.get_toplevel())
         self.newelement = elementmodel
         self.root.add_child(elementmodel.widget)
         self.newelement.connect("element_delete", self.onDeleteElement)
