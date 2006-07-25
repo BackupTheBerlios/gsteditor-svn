@@ -17,6 +17,8 @@ import gsteditorcanvas
 APPNAME="GstEditor"
 APPVERSION="0.0.1"
 
+MAINICON="arrow-icon.png"
+
 class GstEditor:
   "GStreamer Graphical Pipeline Editor class" 
  
@@ -30,6 +32,9 @@ class GstEditor:
     self.gladefile = "glade-sources/gsteditor.glade"
     self.widgets = gtk.glade.XML(self.gladefile, "gstEditorMainWin")
     self.mainwin = self.widgets.get_widget("gstEditorMainWin")
+    
+    #set default icon
+    gtk.window_set_default_icon_from_file(MAINICON)
     
     #start up the canvas
     self.canvas = gsteditorcanvas.GstEditorCanvas()

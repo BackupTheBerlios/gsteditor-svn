@@ -3,6 +3,8 @@ import gtk
 import gobject
 import goocanvas
 
+import gstparamwin
+
 class ElementModel(gobject.GObject):
     "GstElement Model"
     
@@ -234,16 +236,36 @@ class ElementModel(gobject.GObject):
         
     def _configure(self, event):
         "opens up the config dialog to set element parameters"
-        #TODO: make this a floating modal dialog
+        if not(hasattr(self,"paramWin")) :
+            self.paramWin = gstparamwin.GstParamWin(self.element)
+        self.paramWin.show_all()
+        
+        #TODO: make this a floating non-modal dialog
+        parent = self.widget.get_parent().get_parent()
+        dialog = gtk.Dialog('Delete Element',
+                     parent,  # the window that spawned this dialog
+                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,                       
+                     (gtk.STOCK_OK, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_CLOSE))
+        dialog.vbox.pack_start(gtk.Label('Set Element Parameters'))
+        dialog.show_all()
+        
         print "configure element\n total parameters:"
         proplist = gobject.list_properties(self.element)
         print len(proplist)
         for property in proplist:
             print property.name + " " + property.value_type.name
             print "\tvalue: " + str(self.element.get_property(property.name))
+            print "\tblurb: " + property.blurb
+            if hasattr(property, "minimum"):
+                print "\tmin: " + str(property.minimum)
+            if hasattr(property, "maximum"):
+                print "\tmax: " + str(property.maximum)
+                
+        rtn = dialog.run()
+        
+        dialog.destroy()
         return True
     
-
 
 class BinModel(ElementModel):
     """ GstBin Model """
