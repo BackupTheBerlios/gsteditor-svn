@@ -234,11 +234,13 @@ class ElementModel(gobject.GObject):
         
     def _configure(self, event):
         "opens up the config dialog to set element parameters"
+        #TODO: make this a floating modal dialog
         print "configure element\n total parameters:"
         proplist = gobject.list_properties(self.element)
         print len(proplist)
         for property in proplist:
-            print property.__dict__.keys
+            print property.name + " " + property.value_type.name
+            print "\tvalue: " + str(self.element.get_property(property.name))
         return True
     
 
