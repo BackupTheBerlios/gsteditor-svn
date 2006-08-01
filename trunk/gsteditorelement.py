@@ -172,7 +172,7 @@ class ElementModel(gobject.GObject):
     def onButtonPress(self, view, target, event):
         "handle button clicks"
         if event.type == gtk.gdk.BUTTON_PRESS:
-            #TODO: sort out raise_ and lower to make this work
+            #TODO: sort out raise_ and lower to make this element pop to top
             #self.widget.raise_()
             if event.button == 1:
                 # Remember starting position for drag moves.
@@ -239,32 +239,10 @@ class ElementModel(gobject.GObject):
         
     def _configure(self, event):
         "opens up the config dialog to set element parameters"
-        if not(hasattr(self,"paramWin")) :
+        if not(hasattr(self,"paramWin")):
             self.paramWin = gstparamwin.GstParamWin(self.element)
         self.paramWin.show_all()
-        
-        dialog = gtk.Dialog('Delete Element',
-                     self.mainwin,  # the window that spawned this dialog
-                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,                       
-                     (gtk.STOCK_DELETE, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_CLOSE))
-        dialog.vbox.pack_start(gtk.Label('Set Element Parameters'))
-        dialog.show_all()
-        
-        print "configure element\n total parameters:"
-        proplist = gobject.list_properties(self.element)
-        print len(proplist)
-        for property in proplist:
-            print property.name + " " + property.value_type.name
-            print "\tvalue: " + str(self.element.get_property(property.name))
-            print "\tblurb: " + property.blurb
-            if hasattr(property, "minimum"):
-                print "\tmin: " + str(property.minimum)
-            if hasattr(property, "maximum"):
-                print "\tmax: " + str(property.maximum)
-                
-        rtn = dialog.run()
-        
-        dialog.destroy()
+    
         return True
     
 
