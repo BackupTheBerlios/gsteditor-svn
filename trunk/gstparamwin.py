@@ -114,7 +114,9 @@ class GstParamWin(gtk.Window):
                 #strings get a gtk.Entry widget
                 entry = gtk.Entry()
                 text = self.element.get_property(property.name)
-                entry.set_text(text)
+                # ignore empty strings
+                if text:
+                    entry.set_text(text)
                 
                 entry.connect("changed", self.onEntryChanged, property)
                 self.table.attach(entry, 1, 2, count, count+1)
