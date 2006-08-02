@@ -72,7 +72,9 @@ class GstParamWin(gtk.Window):
                 adj = gtk.Adjustment(value, property.minimum, property.maximum)
                 adj.connect("value_changed", self.onValueChanged, property)
                 hscale = gtk.HScale(adj)
+                hscale.set_value_pos(gtk.POS_RIGHT)
                 self.table.attach(hscale, 1, 2, count, count+1)
+                
             elif gobject.type_is_a(property.value_type, gobject.TYPE_BOOLEAN):
                 #booleans get a toggle button
                 tstate = self.element.get_property(property.name)
@@ -84,6 +86,7 @@ class GstParamWin(gtk.Window):
                 button.set_size_request(40,30)
                 button.connect("toggled", self.onToggled, property)
                 self.table.attach(button, 1, 2, count, count+1)
+
             elif hasattr(property, "enum_class"):
                 #for enumerated types, use a combobox
                 choices = _getChoices(property)
@@ -97,6 +100,7 @@ class GstParamWin(gtk.Window):
 
                 combo.connect("changed", self.onComboBoxChanged, property)
                 self.table.attach(combo, 1, 2, count, count+1)
+
             elif gobject.type_is_a(property.value_type, gobject.TYPE_STRING):
                 #strings get a gtk.Entry widget
                 entry = gtk.Entry()
@@ -105,16 +109,17 @@ class GstParamWin(gtk.Window):
                 
                 entry.connect("changed", self.onEntryChanged, property)
                 self.table.attach(entry, 1, 2, count, count+1)
+
             count += 1
 
     def onValueChanged(self, adj, property):
-        "Update element when slider is moved"
+        "Update element parameter when slider is moved"
 
         self.element.set_property(property.name, adj.get_value())
         return True
     
     def onToggled(self, button, property):
-        "Update element when button is toggled"
+        "Update element boolean parameter when button is toggled"
         tstate = button.get_active()
         self.element.set_property(property.name, tstate)
         if tstate:
@@ -133,7 +138,7 @@ class GstParamWin(gtk.Window):
         self.element.set_property(property.name, enum)
                 
     def onEntryChanged(self, widget, property):
-        "update text fields"
+        "update text parameter"
         self.element.set_property(property.name, widget.get_text())
         
     def onDelete(self, window, event):
