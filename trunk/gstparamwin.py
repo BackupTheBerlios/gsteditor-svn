@@ -31,15 +31,17 @@ class GstParamWin(gtk.Window):
         gtk.Window.__init__(self)
         
         if element:
-            self.set_title(element.props.name)
+            title = element.props.name + " - Parameters"
+            self.set_title(title)
             self.element = element
             
         self.set_position(gtk.WIN_POS_MOUSE)
-        self.set_default_size(350, 500)
+        self.set_default_size(380, 500)
 
         self.connect("delete-event", self.onDelete)
         
         self.vbox = gtk.VBox()
+        self.vbox.set_border_width(15)
         self.scrollwin = gtk.ScrolledWindow()
         self.scrollwin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.scrollwin.add_with_viewport(self.vbox)
@@ -70,9 +72,16 @@ class GstParamWin(gtk.Window):
                 #guess that it's numeric - we can use an HScale
                 value = self.element.get_property(property.name)
                 adj = gtk.Adjustment(value, property.minimum, property.maximum)
+                
                 adj.connect("value_changed", self.onValueChanged, property)
                 hscale = gtk.HScale(adj)
                 hscale.set_value_pos(gtk.POS_RIGHT)
+                
+                #check for ints and change digits
+                if not((property.value_type == gobject.TYPE_FLOAT) or
+                        (property.value_type == gobject.TYPE_DOUBLE)):
+                    hscale.set_digits(0)
+                    
                 self.table.attach(hscale, 1, 2, count, count+1)
                 
             elif gobject.type_is_a(property.value_type, gobject.TYPE_BOOLEAN):
@@ -114,8 +123,14 @@ class GstParamWin(gtk.Window):
 
     def onValueChanged(self, adj, property):
         "Update element parameter when slider is moved"
+        #cast non float types as int
+        if not((property.value_type == gobject.TYPE_FLOAT) or
+                (property.value_type == gobject.TYPE_DOUBLE)):
+            value = int(adj.get_value())
+        else:
+            value = adj.get_value()
 
-        self.element.set_property(property.name, adj.get_value())
+        self.element.set_property(property.name, value)
         return True
     
     def onToggled(self, button, property):
