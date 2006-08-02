@@ -44,7 +44,8 @@ class GstEditor:
     #connect buttons
     dict = { "destroyWindow": self._destroyWindow,
             "addElement": self._addElement,
-            "loadFromFile": self._loadFromFile }
+            "loadFromFile": self._loadFromFile,
+            "setPlayMode": self._setPlayMode}
     self.widgets.signal_autoconnect(dict)
     
     #pass the popup menu to the canvas
@@ -126,9 +127,13 @@ class GstEditor:
     #clean up
     dialog.destroy()
 
-  def setPlayMode(self, mode):
-    "Set the pipeline to be playing, paused, etc."
-    raise NotImplementedError
+  def _setPlayMode(self, widget):
+    "Toggles the Play/Pause button."
+    playmode = widget.get_active()
+    self.canvas.setPlayMode(playmode)
+    #TODO: change the widget to make the mode more visually obvious
+    #TODO: attach a signal to update the widget when the element changes state
+    #      without a user clicking the button
     
   def testPrint(self, button):
     print "hello!"

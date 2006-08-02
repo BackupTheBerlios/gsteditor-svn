@@ -59,16 +59,25 @@ class GstParamWin(gtk.Window):
         
         count = 0
         for property in proplist:
-            #skip any non readable params
-            if not(property.flags & gobject.PARAM_READABLE):
-                continue
-            
             label = gtk.Label(property.name)
             label.set_alignment(1,0.5)
             self.table.attach(label, 0, 1, count, count+1)
+            
+            #non readable params
+            if not(property.flags & gobject.PARAM_READABLE):
+                rlabel = gtk.Label("-parameter not readable-")
+                self.table.attach(plabel, 1, 2, count, count+1)
+
+            # just display non-writable param values
+            elif not(property.flags & gobject.PARAM_WRITABLE):
+                wvalue = self.element.get_property(property.name)
+                if wvalue:
+                    wlabel = gtk.Label(wvalue)
+                    self.table.attach(wlabel, 1, 2, count, count+1)
+
             #TODO: tooltips using property.blurb
             
-            if hasattr(property, "minimum") and hasattr(property, "maximum"):
+            elif hasattr(property, "minimum") and hasattr(property, "maximum"):
                 #guess that it's numeric - we can use an HScale
                 value = self.element.get_property(property.name)
                 adj = gtk.Adjustment(value, property.minimum, property.maximum)

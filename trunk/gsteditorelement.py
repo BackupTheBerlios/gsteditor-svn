@@ -35,6 +35,14 @@ class ElementModel(gobject.GObject):
         self.pads = self._makePads()
         self.widget.add_child(self.pads)
 
+    def setPlaying(self):
+        "sets the element to playing"
+        self.element.set_state(gst.STATE_PLAYING)
+
+    def setPaused(self):
+        "sets the element to paused"
+        self.element.set_state(gst.STATE_PAUSED)
+
     def _makePads(self):
         "Creates a Group containing individual pad widgets"
         #TODO: color code based on caps

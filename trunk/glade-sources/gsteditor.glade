@@ -330,6 +330,8 @@
 		  <property name="focus_on_click">True</property>
 		  <property name="active">False</property>
 		  <property name="inconsistent">False</property>
+		  <signal name="toggled" handler="setPlayMode" last_modification_time="Wed, 02 Aug 2006 22:54:17 GMT"/>
+		  <accelerator key="space" modifiers="0" signal="clicked"/>
 		</widget>
 	      </child>
 	    </widget>

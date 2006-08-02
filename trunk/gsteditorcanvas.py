@@ -67,6 +67,13 @@ class GstEditorCanvas(goocanvas.CanvasView):
         #TODO: do I need to clean up signal connections?
         return True
             
+    def setPlayMode(self, mode):
+        "sets the main pipeline to be playing or paused"
+        if mode:
+            self.pipeline.setPlaying()
+        else:
+            self.pipeline.setPaused()
+    
     def onItemViewCreated(self, view, itemview, item):
         "Callback connects all other signals and events for new items"
         #this assumes any Group is an element.  this may need to change...
