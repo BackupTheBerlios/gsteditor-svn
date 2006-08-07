@@ -131,7 +131,7 @@ class GstEditor:
     "Toggles the Play/Pause button."
     playmode = widget.get_active()
     self.canvas.setPlayMode(playmode)
-    #TODO: change the widget to make the mode more visually obvious
+    #TODO: change the widget to make the play mode more visually obvious
     #TODO: attach a signal to update the widget when the element changes state
     #      without a user clicking the button
     

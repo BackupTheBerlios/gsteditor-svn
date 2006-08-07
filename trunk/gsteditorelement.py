@@ -74,12 +74,16 @@ class ElementModel(gobject.GObject):
                 tipwidth = 8 * len(pad.get_name())
                 tiptext = goocanvas.Text(x= leftx - (tipwidth + 16), y = lefty, font = "Sans 9",
                                         text=pad.get_name(), anchor=gtk.ANCHOR_W)
+
                 #TODO: get a better width calculation
+                #width = tiptext.user_bounds_to_device()
                 tipbg = goocanvas.Rect(x = leftx - (tipwidth + 18), y = lefty - 8, height = 16,
                                         width = tipwidth, line_width = 1,
                                         stroke_color = "red", fill_color = "pink")
                 tooltip.add_child(tipbg)
                 tooltip.add_child(tiptext)
+                print "width = " + str(tiptext.get_property("width"))
+                
                 tooltip.set_property("visibility", goocanvas.ITEM_INVISIBLE)
                 lefty += 12
             elif (pad.get_direction() == gst.PAD_SRC):
@@ -88,10 +92,13 @@ class ElementModel(gobject.GObject):
                                         fill_color = "blue", line_width = 2,
                                         stroke_color = "black")
                 tooltip = goocanvas.Group()
-                #TODO: prettify the string to remove underscores and such
+
+                text = pad.get_name()
+                
                 tiptext = goocanvas.Text(x= rightx + 20, y = righty, font = "Sans 9",
                                         text=pad.get_name(), anchor=gtk.ANCHOR_W)
                 #TODO: get a better width calculation
+                #print "tip width: " + str(tiptext.user_bounds_to_device())
                 tipwidth = 8 * len(pad.get_name())
                 tipbg = goocanvas.Rect(x = rightx + 16, y = righty - 8, height = 16,
                                         width = tipwidth, line_width = 1,
@@ -134,8 +141,9 @@ class ElementModel(gobject.GObject):
         #show tooltip
         tooltip = item.get_data("tooltip")
         tooltip.set_property("visibility", goocanvas.ITEM_VISIBLE)
-        #tooltip.raise_(None)
-        #TODO: set tooltip to be top layer (sort out raise_ and lower)
+
+        #set tooltip to be top layer 
+        tooltip.raise_(None)
         return True
         
     def onPadLeave(self, view, target, event):
@@ -180,8 +188,9 @@ class ElementModel(gobject.GObject):
     def onButtonPress(self, view, target, event):
         "handle button clicks"
         if event.type == gtk.gdk.BUTTON_PRESS:
-            #TODO: sort out raise_ and lower to make this element pop to top
-            #self.widget.raise_()
+            # make this element pop to top
+            self.widget.raise_(None)
+            
             if event.button == 1:
                 # Remember starting position for drag moves.
                 self.drag_x = event.x
@@ -189,8 +198,6 @@ class ElementModel(gobject.GObject):
                 return True
 
             elif event.button == 3:
-                #TODO: pop up menu
-                print "element popup"
                 popup = gtk.Menu()
 
                 configItem = gtk.ImageMenuItem("Configure Element")
