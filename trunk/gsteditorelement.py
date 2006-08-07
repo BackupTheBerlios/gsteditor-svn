@@ -216,7 +216,10 @@ class ElementModel(gobject.GObject):
                 
                 popup.popup(None, None, None, event.button, event.time)
                 return True
-            #TODO: double click to pop up element parameters window
+
+        #double clicks open the parameter editor window
+        if event.type == gtk.gdk._2BUTTON_PRESS:
+            self._configure(None)
         
     def onMotion(self, view, target, event):
         #drag move
