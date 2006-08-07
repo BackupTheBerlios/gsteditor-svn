@@ -131,6 +131,8 @@ class GstParamWin(gtk.Window):
                 self.table.attach(entry, 1, 2, count, count+1)
 
             count += 1
+            #TODO: sort out how best to clean up signal handlers
+
 
     def onValueChanged(self, adj, property):
         "Update element parameter when slider is moved"

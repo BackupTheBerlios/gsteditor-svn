@@ -65,6 +65,7 @@ class GstEditorCanvas(goocanvas.CanvasView):
         self.pipeline.removeElement(element.element)
         del(element)
         #TODO: do I need to clean up signal connections?
+
         return True
             
     def setPlayMode(self, mode):
@@ -78,10 +79,22 @@ class GstEditorCanvas(goocanvas.CanvasView):
         "Callback connects all other signals and events for new items"
         #this assumes any Group is an element.  this may need to change...
         if item.get_data("item_type") == "pad":
-            itemview.connect("enter_notify_event", self.newelement.onPadEnter)
-            itemview.connect("leave_notify_event", self.newelement.onPadLeave)
-            itemview.connect("motion_notify_event", self.newelement.onPadMotion)
-            itemview.connect("button_press_event", self.newelement.onPadPress)
+            
+            sig = itemview.connect("enter_notify_event", self.newelement.onPadEnter)
+            self.newelement.signals.append((itemview,sig))
+
+            sig = itemview.connect("leave_notify_event", self.newelement.onPadLeave)
+            self.newelement.signals.append((itemview,sig))
+
+            sig = itemview.connect("motion_notify_event", self.newelement.onPadMotion)
+            self.newelement.signals.append((itemview,sig))
+            
+            sig = itemview.connect("button_press_event", self.newelement.onPadPress)
+            self.newelement.signals.append((itemview,sig))
+            
         if isinstance(item, goocanvas.Group):
-            itemview.connect("button_press_event", self.newelement.onButtonPress)
-            itemview.connect("motion_notify_event", self.newelement.onMotion)
+            sig = itemview.connect("button_press_event", self.newelement.onButtonPress)
+            self.newelement.signals.append((itemview,sig))
+            
+            sig = itemview.connect("motion_notify_event", self.newelement.onMotion)
+            self.newelement.signals.append((itemview,sig))

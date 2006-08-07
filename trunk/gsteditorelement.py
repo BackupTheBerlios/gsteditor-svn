@@ -18,6 +18,9 @@ class ElementModel(gobject.GObject):
         
         self.name = name
         self.description = description
+        
+        #signals stores a list of attached signal handlers
+        self.signals = list()
 
         #create widget 
         self.widget = goocanvas.Group()
@@ -45,7 +48,7 @@ class ElementModel(gobject.GObject):
 
     def _makePads(self):
         "Creates a Group containing individual pad widgets"
-        #TODO: color code based on caps
+        #TODO: color code based on caps? 
         pgroup = goocanvas.Group()
         
         pgroup
@@ -249,8 +252,17 @@ class ElementModel(gobject.GObject):
         if (rtn != gtk.RESPONSE_OK):
             print "canceled delete"
         else:
+            #delete the ItemView signals
+            for (view, signal) in self.signals:
+                view.disconnect(signal)
+                
+            #TODO: check this to see if it's cleaning up signals etc.
+            if self.paramWin:
+                del(self.paramWin)
+            
+            #tell the parent canvas to un-draw and clean up
             self.emit("element_delete", self.widget, self)
-        #clean up
+            
         dialog.destroy()
 
         pass
