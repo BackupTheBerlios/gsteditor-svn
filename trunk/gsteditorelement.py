@@ -46,6 +46,11 @@ class ElementModel(gobject.GObject):
         "sets the element to paused"
         self.element.set_state(gst.STATE_PAUSED)
 
+    def getPlayMode(self):
+        "returns the current state of the element"
+        (rtrn, current, pending) = self.element.get_state(gst.CLOCK_TIME_NONE)
+        return current
+
     def _makePads(self):
         "Creates a Group containing individual pad widgets"
         #TODO: color code based on caps? 
@@ -254,7 +259,7 @@ class ElementModel(gobject.GObject):
                 view.disconnect(signal)
                 
             #TODO: check this to see if it's cleaning up signals etc.
-            if self.paramWin:
+            if hasattr(self, "paramWin"):
                 del(self.paramWin)
             
             #tell the parent canvas to un-draw and clean up
@@ -311,4 +316,7 @@ class PipelineModel(BinModel):
     def __init__(self, name=None, pipeline=None):
         if not pipeline:
             pipeline = gst.Pipeline(name)
+        
         BinModel.__init__(self, name, pipeline)
+
+        self.pipeline = pipeline

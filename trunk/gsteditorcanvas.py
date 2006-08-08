@@ -35,6 +35,9 @@ class GstEditorCanvas(goocanvas.CanvasView):
         gobject.signal_new("element_delete", gsteditorelement.ElementModel, 
                         gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, 
                         (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT))
+                        
+        #custom signal for pipeline state changes
+
         
     def setPopup(self, popup):
         self.popup = popup
@@ -64,6 +67,7 @@ class GstEditorCanvas(goocanvas.CanvasView):
         self.root.remove_child(child)
         self.pipeline.removeElement(element.element)
         del(element)
+        print "element deleted"
         return True
             
     def setPlayMode(self, mode):
@@ -72,6 +76,10 @@ class GstEditorCanvas(goocanvas.CanvasView):
             self.pipeline.setPlaying()
         else:
             self.pipeline.setPaused()
+
+    def getPlayMode(self):
+        "returns the current pipeline state"
+        return self.pipeline.getPlayMode()
     
     def onItemViewCreated(self, view, itemview, item):
         "Callback connects all other signals and events for new items"

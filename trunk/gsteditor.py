@@ -40,6 +40,9 @@ class GstEditor:
     self.canvas = gsteditorcanvas.GstEditorCanvas()
     canvasSW = self.widgets.get_widget("canvasSW")
     canvasSW.add(self.canvas)
+
+    #grab the status bar
+    self.statusbar = self.widgets.get_widget("statusbar")
     
     #connect buttons
     dict = { "destroyWindow": self._destroyWindow,
@@ -53,6 +56,9 @@ class GstEditor:
     popup = self.popwidgets.get_widget("popupMenu")
     self.popwidgets.signal_autoconnect(self)
     self.canvas.setPopup(popup)
+    
+    #initialize status bar
+    self._updatePlayModeDisplay()    
     
   def _loadFromFile(self, widget, event):
     "Load GST Editor pipeline setup from a file and initialize"
@@ -95,6 +101,7 @@ class GstEditor:
     treeview.show()
     
     rtn = dialog.run()
+    
     if (rtn != gtk.RESPONSE_OK):
         print "no element selected"
     else:
@@ -107,30 +114,29 @@ class GstEditor:
     #clean up
     dialog.destroy()
 
-  def _delElement(self, widget, event):
-    "Pops open a confirmation dialog and deletes a GST element from the canvas"
+  def _updatePlayModeDisplay(self):
+    "updates the status bar with current pipeline state"
+    cid = self.statusbar.get_context_id("current")
+
+    self.statusbar.pop(cid)
     
-    dialog = gtk.Dialog('Delete Element',
-                     self.mainwin,  # the window that spawned this dialog
-                     gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,                       
-                     ("Delete Element", gtk.RESPONSE_OK, gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE))
-    dialog.vbox.pack_start(gtk.Label('Are you sure?'))
-    dialog.show_all()
-    
-    rtn = dialog.run()
-    if (rtn != gtk.RESPONSE_OK):
-        print "canceled delete"
-    else:
-        #find out which element to delete
-        item = widget.get_item()
-        item.destroy()
-    #clean up
-    dialog.destroy()
+    mode = self.canvas.getPlayMode()
+    if mode == gst.STATE_NULL:
+        self.statusbar.push(cid, "Pipeline Initialized")
+    elif mode == gst.STATE_PAUSED:
+        self.statusbar.push(cid, "Pipeline Paused")
+    elif mode == gst.STATE_PLAYING:
+        self.statusbar.push(cid, "Pipeline Playing")
+    elif mode == gst.STATE_READY:
+        self.statusbar.push(cid, "Pipeline Ready")
+    elif mode == gst.STATE_VOID_PENDING:
+        self.statusbar.push(cid, "Pipeline Void Pending")
 
   def _setPlayMode(self, widget):
     "Toggles the Play/Pause button."
     playmode = widget.get_active()
     self.canvas.setPlayMode(playmode)
+    self._updatePlayModeDisplay()
     #TODO: change the widget to make the play mode more visually obvious
     #TODO: attach a signal to update the widget when the element changes state
     #      without a user clicking the button

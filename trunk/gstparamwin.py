@@ -92,9 +92,11 @@ class GstParamWin(gtk.Window):
                     hscale.set_digits(0)
                     
                 self.table.attach(hscale, 1, 2, count, count+1)
+                #TODO: add numeric entry box
                 
             elif gobject.type_is_a(property.value_type, gobject.TYPE_BOOLEAN):
                 #booleans get a toggle button
+                #TODO: change this to a tick box or pixmap button
                 tstate = self.element.get_property(property.name)
                 if tstate:
                     button = gtk.ToggleButton("On")
