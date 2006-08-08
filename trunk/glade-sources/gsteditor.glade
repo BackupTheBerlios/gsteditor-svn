@@ -323,6 +323,7 @@
 	      <child>
 		<widget class="GtkToggleButton" id="togglebutton1">
 		  <property name="visible">True</property>
+		  <property name="tooltip" translatable="yes">Pipeline Play/Pause</property>
 		  <property name="can_focus">True</property>
 		  <property name="label">gtk-media-play</property>
 		  <property name="use_stock">True</property>

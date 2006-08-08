@@ -43,12 +43,15 @@ class GstEditor:
 
     #grab the status bar
     self.statusbar = self.widgets.get_widget("statusbar")
+
+    #grab the play button
+    self.playbutton = self.widgets.get_widget("togglebutton1")
+    self.buttonHandler = self.playbutton.connect("toggled", self._setPlayMode)
     
     #connect buttons
     dict = { "destroyWindow": self._destroyWindow,
             "addElement": self._addElement,
-            "loadFromFile": self._loadFromFile,
-            "setPlayMode": self._setPlayMode}
+            "loadFromFile": self._loadFromFile }
     self.widgets.signal_autoconnect(dict)
     
     #pass the popup menu to the canvas
@@ -58,7 +61,15 @@ class GstEditor:
     self.canvas.setPopup(popup)
     
     #initialize status bar
-    self._updatePlayModeDisplay()    
+    self._updatePlayModeDisplay() 
+    
+    #TODO: this is easy but ugly.  maybe move this to a gsteditorcanvas.py
+    bus = self.canvas.pipeline.pipeline.get_bus()
+    bus.add_signal_watch()
+    bus.connect("message", self._busMessage)
+    
+    #self.updating keeps track of play button state to avoid looping
+    self.updating = False
     
   def _loadFromFile(self, widget, event):
     "Load GST Editor pipeline setup from a file and initialize"
@@ -113,7 +124,26 @@ class GstEditor:
         self.canvas.makeNewElement(None, newfactory)
     #clean up
     dialog.destroy()
+  
+  def _busMessage(self, bus, message):
+    "handles special case where pipeline changes state without a button press"
+    if not self.updating:
+        self._updatePlayModeDisplay()
+        
+        mode = self.canvas.getPlayMode()
 
+        #TODO: sort out wierdness and delays that causes this to be triggered
+        # while state is propagating through the pipeline
+        # maybe there is a way to filter messages
+        
+        #block emission of signal before updating the button
+        self.playbutton.handler_block(self.buttonHandler)
+        if mode == gst.STATE_PAUSED:
+            self.playbutton.set_active(False)
+        elif mode == gst.STATE_PLAYING:
+            self.playbutton.set_active(True)
+        self.playbutton.handler_unblock(self.buttonHandler)
+    
   def _updatePlayModeDisplay(self):
     "updates the status bar with current pipeline state"
     cid = self.statusbar.get_context_id("current")
@@ -134,16 +164,16 @@ class GstEditor:
 
   def _setPlayMode(self, widget):
     "Toggles the Play/Pause button."
+    self.updating = True
+    print "started setting play mode"
     playmode = widget.get_active()
     self.canvas.setPlayMode(playmode)
     self._updatePlayModeDisplay()
+    print "done setting play mode"
+    self.updating = False
     #TODO: change the widget to make the play mode more visually obvious
     #TODO: attach a signal to update the widget when the element changes state
     #      without a user clicking the button
-    
-  def testPrint(self, button):
-    print "hello!"
-    return 1
         
   def __main__(self):
     gtk.main()
