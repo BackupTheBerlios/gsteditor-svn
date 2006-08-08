@@ -64,8 +64,6 @@ class GstEditorCanvas(goocanvas.CanvasView):
         self.root.remove_child(child)
         self.pipeline.removeElement(element.element)
         del(element)
-        #TODO: do I need to clean up signal connections?
-
         return True
             
     def setPlayMode(self, mode):

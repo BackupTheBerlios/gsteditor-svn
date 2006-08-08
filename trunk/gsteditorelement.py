@@ -51,7 +51,6 @@ class ElementModel(gobject.GObject):
         #TODO: color code based on caps? 
         pgroup = goocanvas.Group()
         
-        pgroup
         lefty = 109
         righty = 109
         leftx = 109
@@ -59,7 +58,6 @@ class ElementModel(gobject.GObject):
         factory = self.element.get_factory()
         templist = factory.get_static_pad_templates()
 
-        #TODO: clean and optimize this loop
         for template in templist:
             #add any not yet existing pads using templates
             pad = self.element.get_pad(template.name_template)
@@ -80,15 +78,16 @@ class ElementModel(gobject.GObject):
 
                 #TODO: get a better width calculation
                 #width = tiptext.user_bounds_to_device()
+                print "width = " + str(tiptext.get_property("width"))
                 tipbg = goocanvas.Rect(x = leftx - (tipwidth + 18), y = lefty - 8, height = 16,
                                         width = tipwidth, line_width = 1,
                                         stroke_color = "red", fill_color = "pink")
                 tooltip.add_child(tipbg)
                 tooltip.add_child(tiptext)
-                print "width = " + str(tiptext.get_property("width"))
-                
-                tooltip.set_property("visibility", goocanvas.ITEM_INVISIBLE)
+
+                tooltip.props.visibility = goocanvas.ITEM_INVISIBLE
                 lefty += 12
+                
             elif (pad.get_direction() == gst.PAD_SRC):
                 plug = goocanvas.Ellipse(center_x = rightx, center_y = righty,
                                         radius_x = 4, radius_y = 4,
@@ -110,6 +109,7 @@ class ElementModel(gobject.GObject):
                 tooltip.add_child(tiptext)
                 tooltip.set_property("visibility", goocanvas.ITEM_INVISIBLE)
                 righty += 12
+                
             else:
                 print "mystery pad:  " + pad.get_name()
             
@@ -121,17 +121,14 @@ class ElementModel(gobject.GObject):
             pgroup.add_child(tooltip)
         
         pads = self.element.pads()
-        padcount = 0
-        for pad in pads:
-            padcount += 1
-        print "total pads: " + str(padcount)
+
         # resize the Rect if there are more than 5 sinks or src pads
         if (righty > lefty):
             biggerside = righty
         else: 
             biggerside = lefty
         if biggerside > 157:
-            self.box.set_property("height", biggerside - 103)
+            self.box.props.height = biggerside - 103
             
         return pgroup
     
@@ -252,7 +249,7 @@ class ElementModel(gobject.GObject):
         if (rtn != gtk.RESPONSE_OK):
             print "canceled delete"
         else:
-            #delete the ItemView signals
+            #delete the ItemView signals for the element and pad views
             for (view, signal) in self.signals:
                 view.disconnect(signal)
                 
