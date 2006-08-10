@@ -37,6 +37,9 @@ class GstEditorCanvas(goocanvas.CanvasView):
                         (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT))
                         
         #custom signal for pipeline state changes
+        
+        #stuff to handle link drag state
+        self.currentLink = None
 
         
     def setPopup(self, popup):
@@ -48,6 +51,58 @@ class GstEditorCanvas(goocanvas.CanvasView):
                 # pop up menu
                 self.popup.popup(None, None, None, event.button, event.time)
                 return True
+            
+    def _startDrag(self, view, target, event):
+        "start a new link drag"
+        if event.type == gtk.gdk.BUTTON_PRESS:
+            if event.button == 1:
+                print "starting drag"
+                #find the src pad
+                item = target.get_item()
+                src = item.get_data("pad")
+                
+                #make the new link
+                self.currentLink = goocanvas.Polyline()
+
+                #make sure the link and the pad have refs to each other for
+                # moves and updates
+                self.currentLink.set_data("src", src)
+                src.set_data("link", self.currentLink)
+                
+                #now watch for these events so we can catch 
+                self.linkHandlers = list()
+                handler = self.connect("motion_notify_event", self._doDrag)
+                self.linkHandlers.append(handler)
+                handler = self.connect("button_release_event", self._stopDrag)
+                self.linkHandlers.append(handler)
+                
+        print "handled drag"
+        return False
+        
+        
+    def _doDrag(self, view, event):
+        "update link end point" 
+        if self.currentLink:
+            print "dragging"
+            return True
+            
+    def _stopDrag(self, view, event):
+        "attaches or destroys a link when user lets go of mouse"
+##        if self.currentLink:
+##            #if it's over a pad, try to connect
+##            #otherwise, destroy the link
+        print "done dragging"
+##            child = self.root.find_child(self.currentLink)
+##            self.root.remove_child(child)
+##            del(self.currentLink)
+##            self.currentLink = None
+##            
+        while len(self.linkHandlers):
+            link = self.linkHandlers.pop()
+            self.disconnect(link)
+            print "removed link" + str(link)
+        
+        return True
     
     def makeNewElement(self, name, factory):
         "Creates a new Gst element and draws it on the canvas"
@@ -83,7 +138,7 @@ class GstEditorCanvas(goocanvas.CanvasView):
     
     def onItemViewCreated(self, view, itemview, item):
         "Callback connects all other signals and events for new items"
-        #this assumes any Group is an element.  this may need to change...
+        
         if item.get_data("item_type") == "pad":
             
             sig = itemview.connect("enter_notify_event", self.newelement.onPadEnter)
@@ -92,15 +147,22 @@ class GstEditorCanvas(goocanvas.CanvasView):
             sig = itemview.connect("leave_notify_event", self.newelement.onPadLeave)
             self.newelement.signals.append((itemview,sig))
 
-            sig = itemview.connect("motion_notify_event", self.newelement.onPadMotion)
-            self.newelement.signals.append((itemview,sig))
+##            sig = itemview.connect("motion_notify_event", self.newelement.onPadMotion)
+##            self.newelement.signals.append((itemview,sig))
+##            
+##            sig = itemview.connect("button_press_event", self.newelement.onPadPress)
+##            self.newelement.signals.append((itemview,sig))
             
-            sig = itemview.connect("button_press_event", self.newelement.onPadPress)
-            self.newelement.signals.append((itemview,sig))
+            sig = itemview.connect("button_press_event", self._startDrag)
+            self.newelement.signals.append((itemview, sig))
             
-        if isinstance(item, goocanvas.Group):
+            
+        if item.get_data("item_type") == "element":
             sig = itemview.connect("button_press_event", self.newelement.onButtonPress)
-            self.newelement.signals.append((itemview,sig))
+            self.newelement.signals.append((itemview, sig))
             
             sig = itemview.connect("motion_notify_event", self.newelement.onMotion)
-            self.newelement.signals.append((itemview,sig))
+            self.newelement.signals.append((itemview, sig))
+            
+            sig = itemview.connect("button_release_event", self.newelement.onButtonRelease)
+            self.newelement.signals.append((itemview, sig))

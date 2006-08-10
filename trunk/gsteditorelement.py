@@ -24,6 +24,9 @@ class ElementModel(gobject.GObject):
 
         #create widget 
         self.widget = goocanvas.Group()
+        self.widget.set_data("item_type", "element")
+        
+        self.dragging = False
         
         self.mainwin = window
         
@@ -142,13 +145,18 @@ class ElementModel(gobject.GObject):
         #highlight stroke color
         item = target.get_item()
         item.set_property("stroke_color", "green")
-        pad = item.get_data("pad")
+        
         #show tooltip
         tooltip = item.get_data("tooltip")
         tooltip.set_property("visibility", goocanvas.ITEM_VISIBLE)
 
         #set tooltip to be top layer 
-        tooltip.raise_(None)
+        #TODO: find out why this doesn't work right any more
+        #      probably a goocanvas bug
+        #tooltip.raise_(None)
+        # for now just raise the whole widget
+        self.widget.raise_(None)
+        
         return True
         
     def onPadLeave(self, view, target, event):
@@ -156,39 +164,41 @@ class ElementModel(gobject.GObject):
         #reset the stroke color
         item = target.get_item()
         item.set_property("stroke_color", "black")
-        pad = item.get_data("pad")
+
         tooltip = item.get_data("tooltip")
         tooltip.set_property("visibility", goocanvas.ITEM_INVISIBLE)
         return True
         
-    def onPadPress(self, view, target, event):
-        item = target.get_item()
-        if event.button == 1:
-            # Remember starting position for drag moves.
-            self.pad_drag_x = event.x
-            self.pad_drag_y = event.y
-            x1 = item.get_property("center_x")
-            y1 = item.get_property("center_y")
-            parent = item.get_parent()
-            link = goocanvas.polyline_new_line(parent, x1, y1, event.x, event.y)
-            item.set_data("link", link)
-            print "drawing link"
-            return True
-        elif event.button == 3:
-            #TODO: delete connector
-            pass
-        return True
+##    def onPadPress(self, view, target, event):
+##        item = target.get_item()
+##        if event.button == 1:
+##            # Remember starting position for drag moves.
+##            self.pad_drag_x = event.x
+##            self.pad_drag_y = event.y
+##            x1 = item.get_property("center_x")
+##            y1 = item.get_property("center_y")
+##            parent = item.get_parent()
+##            link = goocanvas.polyline_new_line(parent, x1, y1, event.x, event.y)
+##            item.set_data("link", link)
+##            print "drawing link"
+##            return True
+##        elif event.button == 3:
+##            #TODO: delete connector
+##            pass
+##        return True
     
-    def onPadMotion(self, view, target, event):
-        if event.state & gtk.gdk.BUTTON1_MASK:
-            item = target.get_item()
-            link = item.get_data("link")
-            if link:
-                print "dragging link"
-                endpoint = link.points[1]
-                endpoint.set_property("x", event.x)
-                endpoint.set_property("y", event.y)
-        return True
+##    def onPadMotion(self, view, target, event):
+##        return True
+##        
+##        if event.state & gtk.gdk.BUTTON1_MASK:
+##            item = target.get_item()
+##            link = item.get_data("link")
+##            if link:
+##                print "dragging link"
+##                endpoint = link.points[1]
+##                endpoint.set_property("x", event.x)
+##                endpoint.set_property("y", event.y)
+##        return True
 
     def onButtonPress(self, view, target, event):
         "handle button clicks"
@@ -200,6 +210,7 @@ class ElementModel(gobject.GObject):
                 # Remember starting position for drag moves.
                 self.drag_x = event.x
                 self.drag_y = event.y
+                self.dragging = True
                 return True
 
             elif event.button == 3:
@@ -228,14 +239,18 @@ class ElementModel(gobject.GObject):
         
     def onMotion(self, view, target, event):
         #drag move
-        if event.state & gtk.gdk.BUTTON1_MASK:
+        if self.dragging and (event.state & gtk.gdk.BUTTON1_MASK):
             # Get the new position and move by the difference
             new_x = event.x
             new_y = event.y
 
             self.widget.translate(new_x - self.drag_x, new_y - self.drag_y)
 
-            return True
+        return True
+    
+    def onButtonRelease(self, view, target, event):
+        "undo any dragging"
+        self.dragging = False
     
     def _elementRemovedCb(self):
         raise NotImplementedError

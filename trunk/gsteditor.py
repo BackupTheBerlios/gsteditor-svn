@@ -96,7 +96,10 @@ class GstEditor:
     
     #build a list of all usable gst elements
     registry = gst.registry_get_default()
-    registrylist = registry.get_feature_list(gst.ElementFactory)    
+    registrylist = registry.get_feature_list(gst.ElementFactory)
+    registrylist.sort(lambda x, y: cmp(x.get_name(), y.get_name()))    
+    
+    #TODO: it would be nice to have tooltips with full descriptions here
 
     #populate the tree
     treemodel = gtk.TreeStore(gobject.TYPE_PYOBJECT, gobject.TYPE_STRING)
