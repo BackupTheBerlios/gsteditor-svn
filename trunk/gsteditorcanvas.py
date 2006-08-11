@@ -60,46 +60,57 @@ class GstEditorCanvas(goocanvas.CanvasView):
                 #find the src pad
                 item = target.get_item()
                 src = item.get_data("pad")
+                x = item.get_property("center_x")
+                y = item.get_property("center_y")
                 
                 #make the new link
+                points = goocanvas.Points([(x, y), (event.x, event.y)])
                 self.currentLink = goocanvas.Polyline()
+                self.currentLink.props.points = points
+                self.root.add_child(self.currentLink)
 
                 #make sure the link and the pad have refs to each other for
                 # moves and updates
                 self.currentLink.set_data("src", src)
                 src.set_data("link", self.currentLink)
+
+                src_coords = (x, y)
+                self.currentLink.set_data("src_coords", src_coords)
                 
                 #now watch for these events so we can catch 
                 self.linkHandlers = list()
-                handler = self.connect("motion_notify_event", self._doDrag)
-                self.linkHandlers.append(handler)
-                handler = self.connect("button_release_event", self._stopDrag)
+                handler = view.connect("motion_notify_event", self._doDrag)
                 self.linkHandlers.append(handler)
                 
         print "handled drag"
-        return False
+        return True
         
         
-    def _doDrag(self, view, event):
+    def _doDrag(self, view, target, event):
         "update link end point" 
         if self.currentLink:
-            print "dragging"
+            print "dragging", event.x, event.y
+
+            src_coords = self.currentLink.get_data("src_coords")
+            print "src coords: ", src_coords
+            newpoints = goocanvas.Points([src_coords, (event.x, event.y)])
+            self.currentLink.props.points = newpoints
             return True
             
-    def _stopDrag(self, view, event):
+    def _stopDrag(self, view, target, event):
         "attaches or destroys a link when user lets go of mouse"
 ##        if self.currentLink:
 ##            #if it's over a pad, try to connect
 ##            #otherwise, destroy the link
         print "done dragging"
-##            child = self.root.find_child(self.currentLink)
-##            self.root.remove_child(child)
-##            del(self.currentLink)
-##            self.currentLink = None
-##            
+        child = self.root.find_child(self.currentLink)
+        self.root.remove_child(child)
+        del(self.currentLink)
+        self.currentLink = None
+
         while len(self.linkHandlers):
             link = self.linkHandlers.pop()
-            self.disconnect(link)
+            view.disconnect(link)
             print "removed link" + str(link)
         
         return True
@@ -147,20 +158,18 @@ class GstEditorCanvas(goocanvas.CanvasView):
             sig = itemview.connect("leave_notify_event", self.newelement.onPadLeave)
             self.newelement.signals.append((itemview,sig))
 
-##            sig = itemview.connect("motion_notify_event", self.newelement.onPadMotion)
-##            self.newelement.signals.append((itemview,sig))
-##            
-##            sig = itemview.connect("button_press_event", self.newelement.onPadPress)
-##            self.newelement.signals.append((itemview,sig))
-            
             sig = itemview.connect("button_press_event", self._startDrag)
             self.newelement.signals.append((itemview, sig))
-            
+
+            # you don't do release events very often, we can put it from the start
+            sig = itemview.connect("button_release_event", self._stopDrag)
+            self.newelement.signals.append((itemview, sig))
             
         if item.get_data("item_type") == "element":
             sig = itemview.connect("button_press_event", self.newelement.onButtonPress)
             self.newelement.signals.append((itemview, sig))
             
+            #TODO: move this so it's only set up after a click, saves cpu
             sig = itemview.connect("motion_notify_event", self.newelement.onMotion)
             self.newelement.signals.append((itemview, sig))
             
