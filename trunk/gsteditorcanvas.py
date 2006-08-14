@@ -62,10 +62,13 @@ class GstEditorCanvas(goocanvas.CanvasView):
                 src = item.get_data("pad")
                 x = item.get_property("center_x")
                 y = item.get_property("center_y")
+                src_coords = self.convert_from_item_space(view, x, y)
+                to_coords = self.convert_from_item_space(view, event.x, event.y)
                 
                 #make the new link
-                points = goocanvas.Points([(x, y), (event.x, event.y)])
+                points = goocanvas.Points([src_coords, to_coords])
                 self.currentLink = goocanvas.Polyline()
+                self.currentLink.raise_(None)
                 self.currentLink.props.points = points
                 self.root.add_child(self.currentLink)
 
@@ -74,7 +77,6 @@ class GstEditorCanvas(goocanvas.CanvasView):
                 self.currentLink.set_data("src", src)
                 src.set_data("link", self.currentLink)
 
-                src_coords = (x, y)
                 self.currentLink.set_data("src_coords", src_coords)
                 
                 #now watch for these events so we can catch 
@@ -89,12 +91,16 @@ class GstEditorCanvas(goocanvas.CanvasView):
     def _doDrag(self, view, target, event):
         "update link end point" 
         if self.currentLink:
-            print "dragging", event.x, event.y
+            
+            print "item coords: ", event.x, event.y
+            newx,newy = self.convert_from_item_space(view, event.x, event.y)
+            print "global coords: ", newx, newy
 
             src_coords = self.currentLink.get_data("src_coords")
             print "src coords: ", src_coords
-            newpoints = goocanvas.Points([src_coords, (event.x, event.y)])
+            newpoints = goocanvas.Points([src_coords, (newx, newy)])
             self.currentLink.props.points = newpoints
+            self.currentLink.raise_(None)
             return True
             
     def _stopDrag(self, view, target, event):

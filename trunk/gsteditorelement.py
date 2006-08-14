@@ -205,7 +205,6 @@ class ElementModel(gobject.GObject):
         if event.type == gtk.gdk.BUTTON_PRESS:
             # make this element pop to top
             self.widget.raise_(None)
-            
             if event.button == 1:
                 # Remember starting position for drag moves.
                 self.drag_x = event.x
@@ -241,8 +240,8 @@ class ElementModel(gobject.GObject):
         #drag move
         if self.dragging and (event.state & gtk.gdk.BUTTON1_MASK):
             # Get the new position and move by the difference
-            new_x = event.x
-            new_y = event.y
+            new_x = int(event.x)
+            new_y = int(event.y)
 
             self.widget.translate(new_x - self.drag_x, new_y - self.drag_y)
 
