@@ -91,23 +91,24 @@ class GstEditorCanvas(goocanvas.CanvasView):
     def _doDrag(self, view, target, event):
         "update link end point" 
         if self.currentLink:
-            
-            print "item coords: ", event.x, event.y
             newx,newy = self.convert_from_item_space(view, event.x, event.y)
-            print "global coords: ", newx, newy
 
             src_coords = self.currentLink.get_data("src_coords")
-            print "src coords: ", src_coords
             newpoints = goocanvas.Points([src_coords, (newx, newy)])
             self.currentLink.props.points = newpoints
             self.currentLink.raise_(None)
-            return True
+            #TODO: find out why tooltips don't pop up while dragging link
+
+        return False
             
     def _stopDrag(self, view, target, event):
         "attaches or destroys a link when user lets go of mouse"
 ##        if self.currentLink:
 ##            #if it's over a pad, try to connect
 ##            #otherwise, destroy the link
+        if self.hover:
+            pad = self.hover.get_data("pad")
+            print "connecting to ", pad.get_name()
         print "done dragging"
         child = self.root.find_child(self.currentLink)
         self.root.remove_child(child)
@@ -119,6 +120,18 @@ class GstEditorCanvas(goocanvas.CanvasView):
             view.disconnect(link)
             print "removed link" + str(link)
         
+        return False
+    
+    def _setHover(self, view, target, event, item):
+        "sets the pad currently under the mouse"
+        self.hover = item
+        print "hovering"
+        return True
+
+    def _unsetHover(self, view, target, event, item):
+        "unsets the hover pad on leaving"
+        self.hover = None
+        print "hover unset"
         return True
     
     def makeNewElement(self, name, factory):
@@ -158,11 +171,20 @@ class GstEditorCanvas(goocanvas.CanvasView):
         
         if item.get_data("item_type") == "pad":
             
+            
             sig = itemview.connect("enter_notify_event", self.newelement.onPadEnter)
             self.newelement.signals.append((itemview,sig))
+            
+            #sets current hover pad so we can set up links
+            sig = itemview.connect("enter_notify_event", self._setHover, item)
+            self.newelement.signals.append((itemview, sig))
 
             sig = itemview.connect("leave_notify_event", self.newelement.onPadLeave)
             self.newelement.signals.append((itemview,sig))
+
+            #unsets the hover pad
+            sig = itemview.connect("leave_notify_event", self._unsetHover, item)
+            self.newelement.signals.append((itemview, sig))
 
             sig = itemview.connect("button_press_event", self._startDrag)
             self.newelement.signals.append((itemview, sig))
@@ -181,3 +203,5 @@ class GstEditorCanvas(goocanvas.CanvasView):
             
             sig = itemview.connect("button_release_event", self.newelement.onButtonRelease)
             self.newelement.signals.append((itemview, sig))
+            
+        return True
