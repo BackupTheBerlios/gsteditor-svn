@@ -131,18 +131,17 @@ class GstEditorCanvas(goocanvas.CanvasView):
             
     def _stopDrag(self, view, event, srcview):
         "attaches or destroys a link when user lets go of mouse"
-##        if self.currentLink:
-##            #if it's over a pad, try to connect
-##            #otherwise, destroy the link
-        self.pointer_ungrab(srcview, 0)
+        #if it's over a pad, try to connect
+        #otherwise, destroy the link
         if self.hover:
             pad = self.hover.get_data("pad")
             print "connecting to ", pad.get_name()
-        print "done dragging"
-        child = self.root.find_child(self.currentLink)
-        self.root.remove_child(child)
-        del(self.currentLink)
-        self.currentLink = None
+        else:
+            print "done dragging"
+            child = self.root.find_child(self.currentLink)
+            self.root.remove_child(child)
+            del(self.currentLink)
+            self.currentLink = None
 
         while len(self.linkHandlers):
             link = self.linkHandlers.pop()
