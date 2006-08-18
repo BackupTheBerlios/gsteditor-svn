@@ -35,8 +35,6 @@ class GstEditorCanvas(goocanvas.CanvasView):
         gobject.signal_new("element_delete", gsteditorelement.ElementModel, 
                         gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, 
                         (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT))
-                        
-        #custom signal for pipeline state changes
         
         #stuff to handle link drag state
         self.currentLink = None
@@ -131,17 +129,24 @@ class GstEditorCanvas(goocanvas.CanvasView):
             
     def _stopDrag(self, view, event, srcview):
         "attaches or destroys a link when user lets go of mouse"
+        
         #if it's over a pad, try to connect
         #otherwise, destroy the link
         if self.hover:
-            pad = self.hover.get_data("pad")
-            print "connecting to ", pad.get_name()
+            sinkpad = self.hover.get_data("pad")
+            print "connecting to ", sinkpad.get_name()
+            srcpad = self.currentLink.get_data("src")
+            if srcpad.can_link(sinkpad):
+                srcpad.link(sinkpad)
+                #TODO: tidy up the link drawing so that the endpoint is
+                #      orthogonal and ends at the radius
+            else:
+                #TODO: indicate graphically that these pads can't link
+                self._destroyLink()
         else:
             print "done dragging"
-            child = self.root.find_child(self.currentLink)
-            self.root.remove_child(child)
-            del(self.currentLink)
-            self.currentLink = None
+            self._destroyLink()
+
 
         while len(self.linkHandlers):
             link = self.linkHandlers.pop()
@@ -149,6 +154,13 @@ class GstEditorCanvas(goocanvas.CanvasView):
             print "removed link" + str(link)
         
         return True
+    
+    def _destroyLink(self):
+        "deletes a link"
+        child = self.root.find_child(self.currentLink)
+        self.root.remove_child(child)
+        del(self.currentLink)
+        self.currentLink = None
     
     def _setHover(self, view, target, event, item):
         "sets the pad currently under the mouse"
