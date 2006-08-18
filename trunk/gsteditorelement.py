@@ -156,7 +156,7 @@ class ElementModel(gobject.GObject):
         #tooltip.raise_(None)
         # for now just raise the whole widget
         self.widget.raise_(None)
-        
+
         return True
         
     def onPadLeave(self, view, target, event):
@@ -210,6 +210,8 @@ class ElementModel(gobject.GObject):
                 self.drag_x = event.x
                 self.drag_y = event.y
                 self.dragging = True
+                sig = view.connect("motion_notify_event", self.onMotion)
+                self.dragsignal = (view, sig)
                 return True
 
             elif event.button == 3:
@@ -250,6 +252,8 @@ class ElementModel(gobject.GObject):
     def onButtonRelease(self, view, target, event):
         "undo any dragging"
         self.dragging = False
+        (sview, sig) = self.dragsignal
+        sview.disconnect(sig)
     
     def _elementRemovedCb(self):
         raise NotImplementedError

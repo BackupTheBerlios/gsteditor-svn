@@ -52,11 +52,17 @@ class GstEditorCanvas(goocanvas.CanvasView):
                 self.popup.popup(None, None, None, event.button, event.time)
                 return True
             
+    def _onLinkClick(self, view, target, event):
+        "handler for link clicks"
+        self.pointer_ungrab(view, 0)
+        print "clicked on a link"
+            
     def _startDrag(self, view, target, event):
         "start a new link drag"
         if event.type == gtk.gdk.BUTTON_PRESS:
             if event.button == 1:
                 print "starting drag"
+                                
                 #find the src pad
                 item = target.get_item()
                 src = item.get_data("pad")
@@ -68,9 +74,7 @@ class GstEditorCanvas(goocanvas.CanvasView):
                 #make the new link
                 points = goocanvas.Points([src_coords, to_coords])
                 self.currentLink = goocanvas.Polyline()
-                self.currentLink.raise_(None)
                 self.currentLink.props.points = points
-                self.root.add_child(self.currentLink)
 
                 #make sure the link and the pad have refs to each other for
                 # moves and updates
@@ -78,34 +82,59 @@ class GstEditorCanvas(goocanvas.CanvasView):
                 src.set_data("link", self.currentLink)
 
                 self.currentLink.set_data("src_coords", src_coords)
+                self.currentLink.set_data("item_type", "link")
+                
+                self.root.add_child(self.currentLink)
+
+                self.currentLink.raise_(None)
                 
                 #now watch for these events so we can catch 
                 self.linkHandlers = list()
-                handler = view.connect("motion_notify_event", self._doDrag)
+                handler = self.connect("motion_notify_event", self._doDrag)
                 self.linkHandlers.append(handler)
-                
-        print "handled drag"
+                handler = self.connect("button_release_event", self._stopDrag, view)
+                self.linkHandlers.append(handler)
+
+        
+        #ungrab so we can mouse over the other pads
+        self.pointer_ungrab(view, 0)
+
         return True
         
         
-    def _doDrag(self, view, target, event):
-        "update link end point" 
+    def _doDrag(self, view, event):
+        "update link end point"
+        
         if self.currentLink:
-            newx,newy = self.convert_from_item_space(view, event.x, event.y)
-
             src_coords = self.currentLink.get_data("src_coords")
+
+            #TODO: remove this when goocanvas is fixed
+            #      this is a hack to keep the link PolyLine from stealing
+            #      the pointer focus
+            (srcx, srcy) = src_coords
+            if srcx < event.x :
+                newx = event.x - 1
+            else:
+                newx = event.x + 1
+            
+            if srcy < event.y:
+                newy = event.y - 1
+            else:
+                newy = event.y + 1
+            
             newpoints = goocanvas.Points([src_coords, (newx, newy)])
             self.currentLink.props.points = newpoints
             self.currentLink.raise_(None)
-            #TODO: find out why tooltips don't pop up while dragging link
+            print "dragging"
 
         return False
             
-    def _stopDrag(self, view, target, event):
+    def _stopDrag(self, view, event, srcview):
         "attaches or destroys a link when user lets go of mouse"
 ##        if self.currentLink:
 ##            #if it's over a pad, try to connect
 ##            #otherwise, destroy the link
+        self.pointer_ungrab(srcview, 0)
         if self.hover:
             pad = self.hover.get_data("pad")
             print "connecting to ", pad.get_name()
@@ -120,19 +149,19 @@ class GstEditorCanvas(goocanvas.CanvasView):
             view.disconnect(link)
             print "removed link" + str(link)
         
-        return False
+        return True
     
     def _setHover(self, view, target, event, item):
         "sets the pad currently under the mouse"
         self.hover = item
         print "hovering"
-        return True
+        return False
 
     def _unsetHover(self, view, target, event, item):
         "unsets the hover pad on leaving"
         self.hover = None
         print "hover unset"
-        return True
+        return False
     
     def makeNewElement(self, name, factory):
         "Creates a new Gst element and draws it on the canvas"
@@ -168,9 +197,11 @@ class GstEditorCanvas(goocanvas.CanvasView):
     
     def onItemViewCreated(self, view, itemview, item):
         "Callback connects all other signals and events for new items"
+
+        #set up a ref to the ItemView
+        item.set_data("view", itemview)
         
         if item.get_data("item_type") == "pad":
-            
             
             sig = itemview.connect("enter_notify_event", self.newelement.onPadEnter)
             self.newelement.signals.append((itemview,sig))
@@ -188,20 +219,16 @@ class GstEditorCanvas(goocanvas.CanvasView):
 
             sig = itemview.connect("button_press_event", self._startDrag)
             self.newelement.signals.append((itemview, sig))
-
-            # you don't do release events very often, we can put it from the start
-            sig = itemview.connect("button_release_event", self._stopDrag)
-            self.newelement.signals.append((itemview, sig))
             
         if item.get_data("item_type") == "element":
             sig = itemview.connect("button_press_event", self.newelement.onButtonPress)
             self.newelement.signals.append((itemview, sig))
             
-            #TODO: move this so it's only set up after a click, saves cpu
-            sig = itemview.connect("motion_notify_event", self.newelement.onMotion)
+            sig = itemview.connect("button_release_event", self.newelement.onButtonRelease)
             self.newelement.signals.append((itemview, sig))
             
-            sig = itemview.connect("button_release_event", self.newelement.onButtonRelease)
+        if item.get_data("item_type") == "link":
+            sig = itemview.connect("button_press_event", self._onLinkClick)
             self.newelement.signals.append((itemview, sig))
             
         return True
