@@ -193,6 +193,10 @@ class GstEditorCanvas(goocanvas.CanvasView):
         
     def onDeleteElement(self, event, widget, element):
         "un-draws and deletes the element"
+        #first pause the pipeline
+        state = self.getPlayMode()
+        self.setPlayMode(False)
+        
         #clean up the element
         child = self.root.find_child(widget)
         self.root.remove_child(child)
@@ -204,6 +208,9 @@ class GstEditorCanvas(goocanvas.CanvasView):
                 continue
             src = link.get_data("src")
             sink = link.get_data("sink")
+            
+            src.unlink(sink)
+
             src.set_data("link", None)
             sink.set_data("link", None)
             
@@ -213,6 +220,11 @@ class GstEditorCanvas(goocanvas.CanvasView):
         self.pipeline.removeElement(element.element)
         del(element)
         print "element deleted"
+
+        #restore the pipeline play state
+        #TODO: this may need tweaking for states other than playing/paused
+        self.setPlayMode(state)
+        
         return True
             
     def setPlayMode(self, mode):
