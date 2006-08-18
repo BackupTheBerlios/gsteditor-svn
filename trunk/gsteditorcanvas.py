@@ -147,25 +147,25 @@ class GstEditorCanvas(goocanvas.CanvasView):
                 #      orthogonal and ends at the radius
             else:
                 #TODO: indicate graphically that these pads can't link
-                self._destroyLink()
+                self._destroyLink(self.currentLink)
+                self.currentLink = None
         else:
-            print "done dragging"
-            self._destroyLink()
+            self._destroyLink(self.currentLink)
+            self.currentLink = None
 
 
         while len(self.linkHandlers):
             link = self.linkHandlers.pop()
             view.disconnect(link)
-            print "removed link" + str(link)
         
         return True
     
-    def _destroyLink(self):
-        "deletes a link"
-        child = self.root.find_child(self.currentLink)
+    def _destroyLink(self, link):
+        "removes a link from the canvas and cleans up"
+        child = self.root.find_child(link)
         self.root.remove_child(child)
-        del(self.currentLink)
-        self.currentLink = None
+        del(link)
+        
     
     def _setHover(self, view, target, event, item):
         "sets the pad currently under the mouse"
@@ -193,8 +193,23 @@ class GstEditorCanvas(goocanvas.CanvasView):
         
     def onDeleteElement(self, event, widget, element):
         "un-draws and deletes the element"
+        #clean up the element
         child = self.root.find_child(widget)
         self.root.remove_child(child)
+        
+        #clean up the links
+        for pad in element.element.pads():
+            link = pad.get_data("link")
+            if not link:
+                continue
+            src = link.get_data("src")
+            sink = link.get_data("sink")
+            src.set_data("link", None)
+            sink.set_data("link", None)
+            
+            child = self.root.find_child(link)
+            self.root.remove_child(child)
+
         self.pipeline.removeElement(element.element)
         del(element)
         print "element deleted"

@@ -272,7 +272,7 @@ class ElementModel(gobject.GObject):
             for (view, signal) in self.signals:
                 view.disconnect(signal)
                 
-            #TODO: check this to see if it's cleaning up signals etc.
+            #TODO: check this to see if this leaks
             if hasattr(self, "paramWin"):
                 del(self.paramWin)
             
