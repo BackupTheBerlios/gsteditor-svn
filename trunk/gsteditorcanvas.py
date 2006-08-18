@@ -74,10 +74,9 @@ class GstEditorCanvas(goocanvas.CanvasView):
                 self.currentLink = goocanvas.Polyline()
                 self.currentLink.props.points = points
 
-                #make sure the link and the pad have refs to each other for
+                #make sure the link has refs to the pad for
                 # moves and updates
                 self.currentLink.set_data("src", src)
-                src.set_data("link", self.currentLink)
 
                 self.currentLink.set_data("src_coords", src_coords)
                 self.currentLink.set_data("item_type", "link")
@@ -120,9 +119,12 @@ class GstEditorCanvas(goocanvas.CanvasView):
             else:
                 newy = event.y + 1
             
-            newpoints = goocanvas.Points([src_coords, (newx, newy)])
+            sink_coords = (newx, newy)
+            
+            newpoints = goocanvas.Points([src_coords, sink_coords])
             self.currentLink.props.points = newpoints
             self.currentLink.raise_(None)
+            self.currentLink.set_data("sink_coords", sink_coords)
             print "dragging"
 
         return False
@@ -138,6 +140,9 @@ class GstEditorCanvas(goocanvas.CanvasView):
             srcpad = self.currentLink.get_data("src")
             if srcpad.can_link(sinkpad):
                 srcpad.link(sinkpad)
+                srcpad.set_data("link", self.currentLink)
+                sinkpad.set_data("link", self.currentLink)
+                self.currentLink.set_data("sink", sinkpad)
                 #TODO: tidy up the link drawing so that the endpoint is
                 #      orthogonal and ends at the radius
             else:

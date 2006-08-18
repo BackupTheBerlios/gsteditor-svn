@@ -127,6 +127,7 @@ class ElementModel(gobject.GObject):
             plug.set_data("tooltip", tooltip)
             pgroup.add_child(plug)
             pgroup.add_child(tooltip)
+            pad.set_data("widget", plug)
         
         pads = self.element.pads()
 
@@ -168,37 +169,6 @@ class ElementModel(gobject.GObject):
         tooltip = item.get_data("tooltip")
         tooltip.set_property("visibility", goocanvas.ITEM_INVISIBLE)
         return True
-        
-##    def onPadPress(self, view, target, event):
-##        item = target.get_item()
-##        if event.button == 1:
-##            # Remember starting position for drag moves.
-##            self.pad_drag_x = event.x
-##            self.pad_drag_y = event.y
-##            x1 = item.get_property("center_x")
-##            y1 = item.get_property("center_y")
-##            parent = item.get_parent()
-##            link = goocanvas.polyline_new_line(parent, x1, y1, event.x, event.y)
-##            item.set_data("link", link)
-##            print "drawing link"
-##            return True
-##        elif event.button == 3:
-##            #TODO: delete connector
-##            pass
-##        return True
-    
-##    def onPadMotion(self, view, target, event):
-##        return True
-##        
-##        if event.state & gtk.gdk.BUTTON1_MASK:
-##            item = target.get_item()
-##            link = item.get_data("link")
-##            if link:
-##                print "dragging link"
-##                endpoint = link.points[1]
-##                endpoint.set_property("x", event.x)
-##                endpoint.set_property("y", event.y)
-##        return True
 
     def onButtonPress(self, view, target, event):
         "handle button clicks"
@@ -246,7 +216,33 @@ class ElementModel(gobject.GObject):
             new_y = int(event.y)
 
             self.widget.translate(new_x - self.drag_x, new_y - self.drag_y)
+            
+            #update the links
+            for pad in self.element.pads():
+                link = pad.get_data("link")
+                if not link:
+                    continue
 
+                cview = view.get_canvas_view()
+
+                widget = pad.get_data("widget")
+                x = widget.props.center_x
+                y = widget.props.center_y
+
+                #if it's a src pad then the sink stays put, update src
+                if (pad.get_direction() == gst.PAD_SRC):
+                    sink_coords = link.get_data("sink_coords")
+                    src_coords = cview.convert_from_item_space(view, x, y)
+                    link.set_data("src_coords", src_coords)
+                #otherwise the src stays put and we update the sink
+                else:
+                    src_coords = link.get_data("src_coords")
+                    sink_coords = cview.convert_from_item_space(view, x, y)
+                    link.set_data("sink_coords", sink_coords)
+                
+                newpoints = goocanvas.Points([src_coords, sink_coords])
+                link.props.points = newpoints
+                
         return True
     
     def onButtonRelease(self, view, target, event):
