@@ -223,16 +223,13 @@ class GstEditorCanvas(goocanvas.CanvasView):
 
         #restore the pipeline play state
         #TODO: this may need tweaking for states other than playing/paused
-        self.setPlayMode(state)
+        self.pipeline.setPlayMode(state)
         
         return True
             
     def setPlayMode(self, mode):
         "sets the main pipeline to be playing or paused"
-        if mode:
-            self.pipeline.setPlaying()
-        else:
-            self.pipeline.setPaused()
+        self.pipeline.setPlayMode(mode)
 
     def getPlayMode(self):
         "returns the current pipeline state"

@@ -4,6 +4,7 @@ pygtk.require("2.0")
 import pygst
 pygst.require("0.10")
 
+import sys
 import gst
 import gobject
 import gtk
@@ -33,9 +34,6 @@ class GstEditor:
     self.widgets = gtk.glade.XML(self.gladefile, "gstEditorMainWin")
     self.mainwin = self.widgets.get_widget("gstEditorMainWin")
     
-    #set default icon
-    gtk.window_set_default_icon_from_file(MAINICON)
-    
     #start up the canvas
     self.canvas = gsteditorcanvas.GstEditorCanvas()
     canvasSW = self.widgets.get_widget("canvasSW")
@@ -51,7 +49,9 @@ class GstEditor:
     #connect buttons
     dict = { "destroyWindow": self._destroyWindow,
             "addElement": self._addElement,
-            "loadFromFile": self._loadFromFile }
+            "loadFromFile": self._loadFromFile,
+            "Quit": self._destroyWindow,
+            "About" : self._aboutWindow }
     self.widgets.signal_autoconnect(dict)
     
     #pass the popup menu to the canvas
@@ -79,6 +79,23 @@ class GstEditor:
     "Kills the app and cleans up"
     
     gtk.main_quit()
+
+  def _aboutResponse(self, dialog, response):
+    dialog.destroy()
+    
+  def _aboutWindow(self, event):
+    """ Show the About dialogbox """
+    about = gtk.AboutDialog()
+    about.set_name(APPNAME)
+    about.set_version(APPVERSION)
+    about.set_website("http://gsteditor.wordpress.com/")
+    about.set_authors(["Brendan Howell <brendan.howell@gmail.com>"])
+    about.set_license("GNU Lesser General Public License\nSee http://www.gnu.org/copyleft/lesser.html for more details")
+    about.set_icon_from_file(MAINICON)
+
+    about.connect("response", self._aboutResponse)
+    
+    about.show()
   
   def _addElementPopup(self, event):
     "Calls add element from a popup menu selection"
@@ -93,6 +110,9 @@ class GstEditor:
     
     diawidget = gtk.glade.XML(self.gladefile, "addElementDialog")
     dialog = diawidget.get_widget("addElementDialog")
+
+    #pressing ENTER in the dialog box validates the OK button
+    dialog.set_default_response(-5)
     
     #build a list of all usable gst elements
     registry = gst.registry_get_default()
@@ -120,11 +140,11 @@ class GstEditor:
         print "no element selected"
     else:
         #find out which element was selected
-        selected = treeview.get_selection()
-        model, select = selected.get_selected()
-        newfactory = model.get_value(select, 0)
-        #give it to the canvas to instantiate and draw
-        self.canvas.makeNewElement(None, newfactory)
+        model, select = treeview.get_selection().get_selected()
+        if select:
+          newfactory = model.get_value(select, 0)
+          #give it to the canvas to instantiate and draw
+          self.canvas.makeNewElement(None, newfactory)
     #clean up
     dialog.destroy()
   
@@ -141,9 +161,9 @@ class GstEditor:
         
         #block emission of signal before updating the button
         self.playbutton.handler_block(self.buttonHandler)
-        if mode == gst.STATE_PAUSED:
+        if not(mode == gst.STATE_PLAYING):
             self.playbutton.set_active(False)
-        elif mode == gst.STATE_PLAYING:
+        else:
             self.playbutton.set_active(True)
         self.playbutton.handler_unblock(self.buttonHandler)
     
@@ -169,7 +189,10 @@ class GstEditor:
     "Toggles the Play/Pause button."
     self.updating = True
     print "started setting play mode"
-    playmode = widget.get_active()
+    if widget.get_active():
+        playmode = gst.STATE_PLAYING
+    else:
+        playmode = gst.STATE_PAUSED
     self.canvas.setPlayMode(playmode)
     self._updatePlayModeDisplay()
     print "done setting play mode"
@@ -180,3 +203,10 @@ class GstEditor:
         
   def __main__(self):
     gtk.main()
+    
+def main(*argv):
+    editor = GstEditor("GST test editor")
+    editor.__main__()
+
+if __name__ == "__main__":
+    main(sys.argv)

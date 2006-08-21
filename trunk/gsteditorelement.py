@@ -48,6 +48,10 @@ class ElementModel(gobject.GObject):
     def setPaused(self):
         "sets the element to paused"
         self.element.set_state(gst.STATE_PAUSED)
+        
+    def setPlayMode(self, state):
+        "sets an explicit state for the element"
+        self.element.set_state(state)
 
     def getPlayMode(self):
         "returns the current state of the element"
