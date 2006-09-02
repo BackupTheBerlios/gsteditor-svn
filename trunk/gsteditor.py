@@ -27,7 +27,7 @@ class GstEditor:
   def __init__(self,name=None):
     "Initialize a new GSTEditor"
 
-    print gst.version_string()
+    #print gst.version_string()
     
     gnome.init(APPNAME, APPVERSION)
     self.name = name
@@ -138,7 +138,8 @@ class GstEditor:
     rtn = dialog.run()
     
     if (rtn != gtk.RESPONSE_OK):
-        print "no element selected"
+        #print "no element selected"
+        pass
     else:
         #find out which element was selected
         model, select = treeview.get_selection().get_selected()
@@ -189,14 +190,14 @@ class GstEditor:
   def _setPlayMode(self, widget):
     "Toggles the Play/Pause button."
     self.updating = True
-    print "started setting play mode"
+    #print "started setting play mode"
     if widget.get_active():
         playmode = gst.STATE_PLAYING
     else:
         playmode = gst.STATE_PAUSED
     self.canvas.setPlayMode(playmode)
     self._updatePlayModeDisplay()
-    print "done setting play mode"
+    #print "done setting play mode"
     self.updating = False
     #TODO: change the widget to make the play mode more visually obvious
     #TODO: attach a signal to update the widget when the element changes state

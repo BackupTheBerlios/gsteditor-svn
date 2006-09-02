@@ -53,13 +53,13 @@ class GstEditorCanvas(goocanvas.CanvasView):
     def _onLinkClick(self, view, target, event):
         "handler for link clicks"
         self.pointer_ungrab(view, 0)
-        print "clicked on a link"
+        #print "clicked on a link"
             
     def _startDrag(self, view, target, event):
         "start a new link drag"
         if event.type == gtk.gdk.BUTTON_PRESS:
             if event.button == 1:
-                print "starting drag"
+                #print "starting drag"
                                 
                 #find the src pad
                 item = target.get_item()
@@ -125,7 +125,7 @@ class GstEditorCanvas(goocanvas.CanvasView):
             self.currentLink.props.points = newpoints
             self.currentLink.raise_(None)
             self.currentLink.set_data("sink_coords", sink_coords)
-            print "dragging"
+            #print "dragging"
 
         return False
             
@@ -136,7 +136,7 @@ class GstEditorCanvas(goocanvas.CanvasView):
         #otherwise, destroy the link
         if self.hover:
             sinkpad = self.hover.get_data("pad")
-            print "connecting to ", sinkpad.get_name()
+            #print "connecting to ", sinkpad.get_name()
             srcpad = self.currentLink.get_data("src")
             if srcpad.can_link(sinkpad):
                 srcpad.link(sinkpad)
@@ -170,13 +170,13 @@ class GstEditorCanvas(goocanvas.CanvasView):
     def _setHover(self, view, target, event, item):
         "sets the pad currently under the mouse"
         self.hover = item
-        print "hovering"
+        #print "hovering"
         return False
 
     def _unsetHover(self, view, target, event, item):
         "unsets the hover pad on leaving"
         self.hover = None
-        print "hover unset"
+        #print "hover unset"
         return False
     
     def makeNewElement(self, name, factory):
@@ -219,7 +219,7 @@ class GstEditorCanvas(goocanvas.CanvasView):
 
         self.pipeline.removeElement(element.element)
         del(element)
-        print "element deleted"
+        #print "element deleted"
 
         #restore the pipeline play state
         #TODO: this may need tweaking for states other than playing/paused

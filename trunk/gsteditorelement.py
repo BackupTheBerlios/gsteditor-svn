@@ -90,7 +90,7 @@ class ElementModel(gobject.GObject):
 
                 #TODO: get a better width calculation
                 #width = tiptext.user_bounds_to_device()
-                print "width = " + str(tiptext.get_property("width"))
+                #print "width = " + str(tiptext.get_property("width"))
                 tipbg = goocanvas.Rect(x = leftx - (tipwidth + 18), y = lefty - 8, height = 16,
                                         width = tipwidth, line_width = 1,
                                         stroke_color = "red", fill_color = "pink")
@@ -270,7 +270,8 @@ class ElementModel(gobject.GObject):
         
         rtn = dialog.run()
         if (rtn != gtk.RESPONSE_OK):
-            print "canceled delete"
+            #print "canceled delete"
+            pass
         else:
             #delete the ItemView signals for the element and pad views
             for (view, signal) in self.signals:
