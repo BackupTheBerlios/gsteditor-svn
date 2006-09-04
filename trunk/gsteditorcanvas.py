@@ -53,7 +53,8 @@ class GstEditorCanvas(goocanvas.CanvasView):
     def _onLinkClick(self, view, target, event):
         "handler for link clicks"
         self.pointer_ungrab(view, 0)
-        #print "clicked on a link"
+        
+        print "clicked on a link"
             
     def _startDrag(self, view, target, event):
         "start a new link drag"
