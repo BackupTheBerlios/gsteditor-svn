@@ -1,0 +1,3 @@
+include LICENSE
+include glade-sources/gsteditor.glade
+include glade-sources/arrow-icon.png

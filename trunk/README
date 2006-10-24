@@ -1,0 +1,40 @@
+GstEditor 0.0.1
+
+This is the first version of a re-written GStreamer graphical pipeline 
+editor.  This version was written from scratch to work with gstreamer 
+0.10.x 
+
+
+Requirements:
+
+pygtk 2.8+
+pygoocanvas 0.1 (SVN) - see http://pygoocanvas.berlios.de
+goocanvas 0.3 (CVS) - required by pygoocanvas
+
+
+Usage:
+
+Create elements using the add button or by right clicking on the drawing 
+area.  Connect pads by clicking on the pad and dragging to another pad.  
+To adjust element parameters, double click or right click -> Configure 
+Element on the element.  Elements can be moved around the screen with a 
+left click, drag.  Delete elements with a right click -> Delete Element.
+
+
+Some current known bugs:
+
+- File save and open don't work.
+- There's a bunch of debug output.
+- Bins and pipelines within pipelines are not yet supported.
+- occasionally, links are left on the drawing space despite the pads not 
+being connected.
+- links can only be deleted by removing an element
+
+
+Contact:
+
+Please let me know about bugs, problems and feature requests.  
+
+Email - Brendan Howell (mute@howell-ersatz.com)
+Dev Blog - http://gsteditor.wordpress.com
+GStreamer IRC - #gstreamer on irc.freedesktop.org
