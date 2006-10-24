@@ -35,7 +35,7 @@ import gsteditorcanvas
 
 
 APPNAME="GstEditor"
-APPVERSION="0.0.2"
+APPVERSION="0.0.3"
 
 MAINICON="arrow-icon.png"
 
